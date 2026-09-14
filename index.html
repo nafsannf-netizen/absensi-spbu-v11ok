@@ -1,0 +1,3600 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <!-- Sistem Absensi Pintar V11: SPBU KOTOBARU CAHAYA UTAMA -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Absensi Pintar V11 - SPBU Kotobaru Cahaya Utama</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            primary: '#738862',
+            secondary: '#10B981',
+            dark: '#111827'
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: Inter, sans-serif
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px
+    }
+
+    .view-section {
+      display: none
+    }
+
+    .view-section.active {
+      display: block;
+      animation: fadeIn .25s ease
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .sidebar-item.active {
+      background: rgba(255, 255, 255, .14);
+      color: #fff
+    }
+
+    .modal-backdrop {
+      background: rgba(15, 23, 42, .55);
+      backdrop-filter: blur(4px)
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: .25rem .55rem;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, .04)
+    }
+
+    input,
+    select,
+    textarea {
+      outline: none
+    }
+
+    /* ==============================
+           CUSTOM SCROLLBAR
+        ============================== */
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c7c7c7;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+
+    /* ==============================
+           ANIMATIONS
+        ============================== */
+
+    .animate-fade-in {
+      animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .animate-slide-up {
+      animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+
+    /* ==============================
+           GLASS EFFECT
+        ============================== */
+
+    .glass {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+
+    /* ==============================
+           VIEW STATE
+        ============================== */
+
+    .view-section {
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+
+    /* ==============================
+           TABLE STYLES
+        ============================== */
+
+    .table-header {
+      padding: 0.75rem 1.5rem;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: #f9fafb;
+      position: sticky;
+      top: 0;
+    }
+
+    .table-cell {
+      padding: 1rem 1.5rem;
+      white-space: nowrap;
+      font-size: 0.875rem;
+      color: #374151;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+
+    /* ==============================
+           SCAN LIVE HIGHLIGHT
+        ============================== */
+
+    @keyframes scanPulse {
+
+      0% {
+        background-color: #fef9c3;
+        box-shadow: inset 0 0 0 2px #facc15;
+      }
+
+      50% {
+        background-color: #fef08a;
+        box-shadow: inset 0 0 0 3px #f59e0b;
+      }
+
+      100% {
+        background-color: #fef9c3;
+        box-shadow: inset 0 0 0 2px #facc15;
+      }
+    }
+
+    .scan-row-highlight {
+      animation: scanPulse 0.5s ease 3;
+      background-color: #fef9c3 !important;
+    }
+
+    tr.scan-row-done {
+      background-color: transparent;
+      transition: background-color 1.5s ease;
+    }
+
+
+
+    /* V9.1 scanner feedback - adaptasi konsep kamera popup tanpa popup/postMessage */
+    .scanner-feedback {
+      display: none;
+      position: relative;
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      border: 1px solid transparent;
+      animation: scannerPop .25s ease;
+    }
+
+    .scanner-feedback.show {
+      display: block;
+    }
+
+    .scanner-feedback.ok {
+      background: #ecfdf5;
+      color: #047857;
+      border-color: #a7f3d0;
+    }
+
+    .scanner-feedback.err {
+      background: #fef2f2;
+      color: #b91c1c;
+      border-color: #fecaca;
+    }
+
+    .scanner-feedback.warn {
+      background: #fffbeb;
+      color: #b45309;
+      border-color: #fde68a;
+    }
+
+    .scanner-feedback.info {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+
+    .scanner-feedback .feedback-icon {
+      font-size: 18px;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    @keyframes scannerPop {
+      0% {
+        transform: translateY(-6px);
+        opacity: 0
+      }
+
+      100% {
+        transform: translateY(0);
+        opacity: 1
+      }
+    }
+
+    .scanner-flash-ok {
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, .28) !important;
+    }
+
+    .scanner-flash-err {
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, .28) !important;
+    }
+
+    .scanner-camera-status {
+      font-size: 11px;
+      color: #64748b;
+      text-align: center;
+      margin-top: 8px;
+      min-height: 18px;
+    }
+
+    .scanner-reader {
+      position: relative;
+    }
+
+    .scanner-reader>video {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .scanner-reader>div:not(.scanner-reader-overlay) {
+      position: relative;
+      z-index: 1;
+    }
+
+    .scanner-reader-overlay {
+      position: absolute !important;
+      inset: 0;
+      z-index: 5 !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .scanner-aim-box {
+      position: relative;
+      width: 190px;
+      height: 190px;
+      max-width: 65%;
+      max-height: 70%;
+      transition: .2s;
+    }
+
+    .scanner-corner {
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      border-color: #a78bfa;
+      border-style: solid;
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .45));
+    }
+
+    .scanner-corner.tl {
+      top: 0;
+      left: 0;
+      border-width: 4px 0 0 4px;
+      border-radius: 7px 0 0 0;
+    }
+
+    .scanner-corner.tr {
+      top: 0;
+      right: 0;
+      border-width: 4px 4px 0 0;
+      border-radius: 0 7px 0 0;
+    }
+
+    .scanner-corner.bl {
+      bottom: 0;
+      left: 0;
+      border-width: 0 0 4px 4px;
+      border-radius: 0 0 0 7px;
+    }
+
+    .scanner-corner.br {
+      bottom: 0;
+      right: 0;
+      border-width: 0 4px 4px 0;
+      border-radius: 0 0 7px 0;
+    }
+
+    .scanner-scanline {
+      position: absolute;
+      left: 5px;
+      right: 5px;
+      top: 5px;
+      height: 3px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, transparent, #a78bfa, #7c3aed, #a78bfa, transparent);
+      box-shadow: 0 0 8px rgba(124, 58, 237, .7);
+      animation: scannerLine 1.7s ease-in-out infinite;
+    }
+
+    @keyframes scannerLine {
+
+      0%,
+      100% {
+        top: 5px;
+        opacity: .85
+      }
+
+      50% {
+        top: calc(100% - 8px);
+        opacity: 1
+      }
+    }
+
+    .scanner-reader.scanning .scanner-placeholder {
+      display: none;
+    }
+
+    .scanner-reader.scanning .scanner-corner {
+      border-color: #10b981;
+    }
+
+    .scanner-reader.scanning .scanner-scanline {
+      background: linear-gradient(90deg, transparent, #34d399, #10b981, #34d399, transparent);
+      box-shadow: 0 0 10px rgba(16, 185, 129, .75);
+    }
+
+    .scanner-reader.scan-error .scanner-corner {
+      border-color: #ef4444;
+    }
+
+    @media(max-width:480px) {
+      .scanner-aim-box {
+        width: 165px;
+        height: 165px;
+      }
+    }
+  </style>
+
+  <style>
+    .detail-filter {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: .75rem
+    }
+
+    @media(min-width:768px) {
+      .detail-filter {
+        grid-template-columns: 1.1fr 1.1fr 1fr 1fr 1.5fr
+      }
+    }
+
+    .pagination-btn {
+      min-width: 32px;
+      height: 32px;
+      padding: 0 .5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: .5rem;
+      font-size: .7rem;
+      font-weight: 700;
+      background: #fff
+    }
+
+    .pagination-btn:hover {
+      background: #eef2ff;
+      border-color: #c7d2fe
+    }
+
+    .pagination-btn.active {
+      background: #4f46e5;
+      color: #fff;
+      border-color: #4f46e5
+    }
+
+    .employee-card-print {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      overflow: hidden
+    }
+
+    .employee-card-head {
+      background: linear-gradient(135deg, #1e1b4b, #3730a3);
+      color: #fff
+    }
+
+    .scanner-result {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fafc
+    }
+
+    @media print {
+      body * {
+        visibility: hidden !important
+      }
+
+      #employeeCardPrint,
+      #employeeCardPrint * {
+        visibility: visible !important
+      }
+
+      #employeeCardPrint {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%
+      }
+    }
+  </style>
+
+</head>
+
+<body class="bg-slate-100 text-slate-800">
+
+  <!-- LOGIN -->
+  <div id="loginPage" class="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-slate-950">
+
+
+    <!-- ==========================================
+             BACKGROUND
+        =========================================== -->
+
+    <div class="absolute inset-0 z-0">
+
+      <!-- Gradient -->
+      <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      </div>
+
+
+      <!-- Pattern -->
+      <div
+        class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+      </div>
+
+
+      <!-- Blue Glow -->
+      <div
+        class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-700 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-pulse">
+      </div>
+
+
+      <!-- Cyan Glow -->
+      <div
+        class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-cyan-700 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-pulse"
+        style="animation-delay: 2s">
+      </div>
+
+    </div>
+
+
+    <!-- ==========================================
+             LOGIN CARD
+        =========================================== -->
+
+    <div
+      class="relative z-10 w-full max-w-5xl bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/5 flex flex-col lg:flex-row animate-fade-in ring-1 ring-white/10">
+
+
+      <!-- ==========================================
+                 LEFT PANEL
+            =========================================== -->
+
+      <div class="w-full lg:w-5/12 relative p-10 flex flex-col justify-between text-white overflow-hidden group">
+
+
+        <!-- Background Image -->
+        <div class="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105"
+          style="background-image: url('https://www.kuansingkita.com/wp-content/uploads/2022/04/SPBU-1.jpg');">
+        </div>
+
+
+        <!-- Dark Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-900/70 to-slate-900/40">
+        </div>
+
+
+        <!-- LEFT CONTENT -->
+
+        <div class="relative z-10">
+
+
+          <!-- LOGO + NAMA SPBU -->
+
+          <div class="flex items-center gap-3 mb-6">
+
+            <!-- Logo Pertamina -->
+            <div
+              class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-lg">
+
+              <img src="logo-pertamina.png" alt="Logo Pertamina" class="w-7 h-7 object-contain">
+
+            </div>
+
+
+            <!-- Nama dan Nomor SPBU -->
+            <div>
+
+              <span class="block font-bold tracking-wider text-sm text-blue-100/90">
+                SPBU KOTOBARU CAHAYA UTAMA
+              </span>
+
+              <span class="block text-xs text-blue-200/70 mt-1">
+                No. SPBU 13.262.515
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- JUDUL -->
+
+          <h1 class="text-4xl lg:text-5xl font-bold leading-tight mb-4 text-white drop-shadow-sm">
+
+            Sistem Absensi
+            <br>
+
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-cyan-200">
+              Digital
+            </span>
+
+          </h1>
+
+
+          <!-- DESKRIPSI -->
+
+          <p class="text-slate-300 text-sm leading-relaxed max-w-xs font-light">
+
+            Platform manajemen kehadiran karyawan yang terintegrasi,
+            aman, dan real-time.
+
+          </p>
+
+        </div>
+
+
+        <!-- ==========================================
+                     FEATURES
+                =========================================== -->
+
+        <div class="relative z-10 mt-10">
+
+
+          <!-- Indicator -->
+          <div class="flex gap-2 mb-4">
+
+            <span class="h-1 w-8 bg-blue-400 rounded-full">
+            </span>
+
+            <span class="h-1 w-2 bg-white/20 rounded-full">
+            </span>
+
+            <span class="h-1 w-2 bg-white/20 rounded-full">
+            </span>
+
+          </div>
+
+
+          <!-- Secure + Fast -->
+
+          <div class="flex gap-4 text-xs font-medium text-slate-300">
+
+
+            <!-- Secure -->
+
+            <div
+              class="px-3 py-1.5 rounded-lg bg-black/20 backdrop-blur-md border border-white/5 flex items-center gap-2">
+
+              <i class="fas fa-shield-alt text-blue-400"></i>
+
+              Secure
+
+            </div>
+
+
+            <!-- Fast -->
+
+            <div
+              class="px-3 py-1.5 rounded-lg bg-black/20 backdrop-blur-md border border-white/5 flex items-center gap-2">
+
+              <i class="fas fa-bolt text-cyan-400"></i>
+
+              Fast
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ==========================================
+                 RIGHT PANEL
+                 (FORM LOGIN AKAN DITAMBAHKAN DI SINI)
+            =========================================== -->
+
+      <div class="w-full lg:w-7/12 bg-white p-8 lg:p-12 flex flex-col justify-center relative">
+
+        <div class="max-w-md mx-auto w-full">
+
+          <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-slate-800">
+              Selamat Datang
+            </h2>
+
+            <p class="text-slate-500 text-sm mt-2">
+              Silakan masuk menggunakan akun Anda
+            </p>
+          </div>
+
+
+          <!-- PILIH JENIS LOGIN -->
+
+          <div class="bg-slate-100 p-1.5 rounded-xl flex mb-8 border border-slate-200 relative">
+
+            <!-- KARYAWAN -->
+
+            <button id="btnKaryawanTab" onclick="switchLoginTab('Karyawan')"
+              class="flex-1 py-3 text-sm font-bold rounded-lg shadow-sm bg-white text-blue-700 ring-1 ring-black/5 transition-all duration-300 flex items-center justify-center gap-2">
+
+              <i class="fas fa-user-tie"></i>
+
+              Karyawan
+
+            </button>
+
+
+            <!-- SUPERVISOR / ADMIN -->
+
+            <button id="btnAdminTab" onclick="switchLoginTab('admin')"
+              class="flex-1 py-3 text-sm font-medium rounded-lg text-slate-500 hover:text-slate-700 hover:bg-white/50 transition-all duration-300 flex items-center justify-center gap-2">
+
+              <i class="fas fa-user-shield"></i>
+
+              Supervisor / Admin
+
+            </button>
+
+          </div>
+
+          <form onsubmit="handleLogin(event)" class="space-y-5">
+
+            <!-- FORM LOGIN KARYAWAN -->
+            <div id="formKaryawanLogin" class="space-y-5 animate-fade-in">
+
+              <div>
+                <label for="idKaryawan"
+                  class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 ml-1">
+                  ID Karyawan
+                </label>
+
+                <div class="relative group">
+                  <div
+                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                    <i class="far fa-id-card text-lg"></i>
+                  </div>
+
+                  <input type="text" id="idKaryawan" name="idKaryawan"
+                    class="block w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder-slate-400"
+                    placeholder="Masukkan ID Karyawan" autocomplete="username">
+                </div>
+              </div>
+
+              <div>
+                <label for="passwordKaryawan"
+                  class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 ml-1">
+                  Password
+                </label>
+
+                <div class="relative group">
+                  <div
+                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                    <i class="fas fa-lock text-lg"></i>
+                  </div>
+
+                  <input type="password" id="passwordKaryawan" name="passwordKaryawan"
+                    class="block w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder-slate-400"
+                    placeholder="Masukkan password" autocomplete="current-password">
+
+                  <button type="button" onclick="togglePassword('passwordKaryawan', 'togglePasswordKaryawanIcon')"
+                    class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer text-slate-400 hover:text-blue-600 transition-colors"
+                    aria-label="Tampilkan password">
+                    <i class="fas fa-eye" id="togglePasswordKaryawanIcon"></i>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+
+            <!-- FORM LOGIN SUPERVISOR / ADMIN -->
+            <div id="formAdminLogin" class="hidden space-y-5 animate-fade-in">
+
+              <div>
+                <label for="usernameAdmin"
+                  class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 ml-1">
+                  Username
+                </label>
+
+                <div class="relative group">
+                  <div
+                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                    <i class="far fa-user text-lg"></i>
+                  </div>
+
+                  <input type="text" id="usernameAdmin" name="usernameAdmin"
+                    class="block w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder-slate-400"
+                    placeholder="Masukkan username" autocomplete="username">
+                </div>
+              </div>
+
+              <div>
+                <label for="passwordAdmin"
+                  class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 ml-1">
+                  Password
+                </label>
+
+                <div class="relative group">
+                  <div
+                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                    <i class="fas fa-lock text-lg"></i>
+                  </div>
+
+                  <input type="password" id="passwordAdmin" name="passwordAdmin"
+                    class="block w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder-slate-400"
+                    placeholder="Masukkan password" autocomplete="current-password">
+
+                  <button type="button" onclick="togglePassword('passwordAdmin', 'togglePasswordAdminIcon')"
+                    class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer text-slate-400 hover:text-blue-600 transition-colors"
+                    aria-label="Tampilkan password">
+                    <i class="fas fa-eye" id="togglePasswordAdminIcon"></i>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+
+            <!-- TOMBOL LOGIN -->
+            <button type="submit"
+              class="w-full py-4 px-6 bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all transform active:scale-[0.98] text-sm flex justify-center items-center gap-2 group">
+
+              <span>MASUK SEKARANG</span>
+
+              <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+
+            </button>
+
+          </form>
+
+          <div id="loginError"
+            class="mt-6 hidden p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 animate-fade-in">
+            <div class="p-2 bg-red-100 rounded-full text-red-600 shrink-0">
+              <i class="fas fa-exclamation-triangle text-xs"></i>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-red-700">Akses Ditolak</h4>
+              <p id="errorText" class="text-xs text-red-600 mt-0.5">Username atau password salah.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <p class="absolute bottom-6 text-slate-500 text-xs font-medium opacity-60">
+      © 2026 Sistem Absensi SPBU. V11
+    </p>
+  </div>
+
+
+  <!-- APP -->
+  <div id="dashboardContainer" class="hidden h-screen overflow-hidden bg-[#F3F4F6]">
+
+    <aside id="sidebar"
+      class="fixed inset-y-0 left-0 z-40 w-64 text-white transform -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out flex flex-col h-full shadow-2xl border-r border-indigo-900/30"
+      style="background-color: rgb(26, 25, 103);">
+      <div id="sidebarHeader"
+        class="h-16 flex items-center justify-start px-6 border-b border-indigo-900/50 overflow-hidden relative transition-all duration-300">
+        <div class="absolute top-0 left-0 w-full h-full bg-white/5 pointer-events-none"></div>
+        <div class="flex items-center space-x-3 relative z-10 w-full">
+          <div
+            class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-900/50 shrink-0 transition-all duration-300">
+            <i class="fas fa-qrcode text-sm"></i>
+          </div>
+          <div class="sidebar-label transition-opacity duration-300 whitespace-nowrap">
+            <h1 class="font-bold text-base tracking-wide text-white">E-ABSENSI</h1>
+            <p class="text-[9px] text-indigo-200 uppercase tracking-wider font-semibold">SPBU System</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 overflow-hidden transition-all duration-300">
+        <div id="userProfileCard"
+          class="flex items-center space-x-3 p-3 bg-black/20 rounded-xl border border-white/10 transition-all duration-300 overflow-hidden">
+          <div id="navUserInitial"
+            class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-sm shadow-inner shrink-0 text-white">
+            U</div>
+          <div id="userInfo" class="sidebar-label transition-opacity duration-300 whitespace-nowrap">
+            <p id="navUserName" class="font-semibold text-xs truncate text-white max-w-[120px]">User</p>
+            <span id="navUserRole"
+              class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-indigo-800 text-indigo-100 border border-indigo-700 tracking-wider">Role</span>
+          </div>
+        </div>
+      </div>
+
+      <nav id="sidebarMenu" class="flex-1 overflow-y-auto overflow-x-hidden px-3 space-y-1 pb-4 scrollbar-hide text-sm">
+      </nav>
+
+      <div class="p-4 border-t border-indigo-900/50 bg-black/10">
+        <button onclick="logout()" id="btnLogout"
+          class="flex items-center space-x-3 text-red-300 hover:text-white hover:bg-red-500/20 w-full p-2.5 rounded-lg transition duration-200 group overflow-hidden whitespace-nowrap justify-start">
+          <i
+            class="fas fa-sign-out-alt w-5 text-center shrink-0 group-hover:scale-110 transition-transform text-sm"></i>
+          <span class="sidebar-label font-medium transition-opacity duration-300 text-xs">Keluar Aplikasi</span>
+        </button>
+      </div>
+    </aside>
+
+    <div id="mobileOverlay" onclick="toggleSidebar()"
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0">
+    </div>
+
+    <main class="md:ml-64 h-screen flex flex-col">
+      <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 shrink-0">
+        <div class="flex items-center gap-3">
+          <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg hover:bg-slate-100">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div>
+            <div id="pageTitle" class="font-extrabold text-lg">Dashboard</div>
+            <div id="currentDate" class="text-[10px] text-slate-400 font-semibold"></div>
+          </div>
+        </div>
+        <div class="text-xs font-bold text-slate-500 hidden sm:block">SPBU KOTOBARU CAHAYA UTAMA</div>
+      </header>
+
+      <div id="content" class="flex-1 overflow-y-auto p-4 md:p-6">
+
+
+        <!-- ADMIN DASHBOARD -->
+        <section id="view-admin-dashboard" class="view-section">
+          <div class="flex flex-col md:flex-row justify-between md:items-end gap-3 mb-6">
+            <div>
+              <h2 class="text-2xl font-extrabold">Dashboard Admin</h2>
+              <p class="text-sm text-slate-500">Pusat kontrol absensi karyawan.</p>
+            </div>
+            <button onclick="refreshAll()" class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold"><i
+                class="fas fa-sync-alt mr-2"></i>Refresh</button>
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+            <div class="card p-5">
+              <div class="text-[10px] font-bold uppercase text-slate-400">Total Karyawan</div>
+              <div id="admTotal" class="text-3xl font-extrabold mt-2">0</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[10px] font-bold uppercase text-emerald-500">Hadir</div>
+              <div id="admHadir" class="text-3xl font-extrabold mt-2">0</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[10px] font-bold uppercase text-yellow-500">Terlambat</div>
+              <div id="admTerlambat" class="text-3xl font-extrabold mt-2">0</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[10px] font-bold uppercase text-blue-500">Izin / Sakit</div>
+              <div id="admIzinSakit" class="text-3xl font-extrabold mt-2">0</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[10px] font-bold uppercase text-red-500">Alpa</div>
+              <div id="admAlpa" class="text-3xl font-extrabold mt-2">0</div>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-6">
+            <div class="card p-5 lg:col-span-2">
+              <div class="font-bold text-sm mb-4"><i class="fas fa-chart-bar text-indigo-500 mr-2"></i>Statistik
+                Kehadiran Hari Ini</div>
+              <div class="h-72"><canvas id="attendanceChart"></canvas></div>
+            </div>
+            <div class="card p-5">
+              <div class="font-bold text-sm mb-4"><i class="fas fa-bolt text-amber-500 mr-2"></i>Akses Cepat</div>
+              <div class="space-y-2">
+                <button onclick="showView('view-data-karyawan')" class="quick-btn"><i
+                    class="fas fa-user-tie"></i><span>Data Karyawan</span></button>
+                <button onclick="showView('view-manajemen-shift')" class="quick-btn"><i
+                    class="fas fa-clock"></i><span>Manajemen Shift</span></button>
+                <button onclick="showView('view-kelola-absen')" class="quick-btn"><i
+                    class="fas fa-calendar-check"></i><span>Kelola Absensi</span></button>
+                <button onclick="showView('view-monitoring')" class="quick-btn"><i
+                    class="fas fa-desktop"></i><span>Monitoring</span></button>
+                <button onclick="showView('view-rekap-bulanan')" class="quick-btn"><i
+                    class="fas fa-file-excel"></i><span>Rekap & Export</span></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- KARYAWAN DASHBOARD -->
+        <section id="view-karyawan-dashboard" class="view-section">
+          <div class="mb-6">
+            <h2 class="text-2xl font-extrabold">Dashboard Karyawan</h2>
+            <p class="text-sm text-slate-500">Ringkasan absensi Anda hari ini.</p>
+          </div>
+          <div class="grid md:grid-cols-4 gap-4 mb-6">
+            <div class="card p-5">
+              <div class="text-[10px] uppercase font-bold text-slate-400">Status Hari Ini</div>
+              <div id="myStatus" class="text-xl font-extrabold mt-2">Belum Absen</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[10px] uppercase font-bold text-slate-400">Jam Masuk</div>
+              <div id="myMasuk" class="text-xl font-extrabold mt-2">-</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[10px] uppercase font-bold text-slate-400">Jam Pulang</div>
+              <div id="myPulang" class="text-xl font-extrabold mt-2">-</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[10px] uppercase font-bold text-slate-400">Shift</div>
+              <div id="myShift" class="text-xl font-extrabold mt-2">-</div>
+            </div>
+          </div>
+          <div class="card p-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h3 class="font-extrabold">Absensi Hari Ini</h3>
+                <p id="myProfileText" class="text-xs text-slate-500 mt-1"></p>
+              </div>
+              <button onclick="showView('view-absen-karyawan')"
+                class="px-5 py-3 rounded-xl bg-indigo-600 text-white text-sm font-bold"><i
+                  class="fas fa-fingerprint mr-2"></i>Absen Sekarang</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- DATA KARYAWAN -->
+        <section id="view-data-karyawan" class="view-section">
+          <div class="flex flex-col md:flex-row justify-between md:items-end gap-3 mb-5">
+            <div>
+              <h2 class="text-2xl font-extrabold">Data Karyawan</h2>
+              <p class="text-sm text-slate-500">Kelola identitas dan akun karyawan.</p>
+            </div>
+            <button onclick="openEmployeeModal()"
+              class="px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-xs font-bold"><i
+                class="fas fa-plus mr-2"></i>Tambah Karyawan</button>
+          </div>
+          <div class="card overflow-hidden">
+            <div class="p-4 border-b flex flex-col md:flex-row gap-3 justify-between">
+              <input id="employeeSearch" oninput="renderEmployees()"
+                class="w-full md:w-80 px-3 py-2.5 rounded-lg border border-slate-200 text-sm"
+                placeholder="Cari nama / ID karyawan...">
+              <div class="flex gap-2 flex-wrap">
+                <button onclick="triggerImportEmployees()"
+                  class="px-4 py-2 rounded-lg bg-sky-600 text-white text-xs font-bold"><i
+                    class="fas fa-file-upload mr-2"></i>Import Excel</button>
+                <input id="fileInputEmployees" type="file" accept=".xlsx,.xls,.csv" class="hidden"
+                  onchange="handleFileImportEmployees(this)">
+                <button onclick="exportEmployees()"
+                  class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold"><i
+                    class="fas fa-file-excel mr-2"></i>Export Excel</button>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-[10px] uppercase text-slate-500">
+                  <tr>
+                    <th class="p-3 text-left">No</th>
+                    <th class="p-3 text-left">ID</th>
+                    <th class="p-3 text-left">Nama</th>
+                    <th class="p-3 text-left">Jabatan</th>
+                    <th class="p-3 text-left">Shift</th>
+                    <th class="p-3 text-left">No. HP</th>
+                    <th class="p-3 text-left">Password Akun</th>
+                    <th class="p-3 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="employeeTable"></tbody>
+              </table>
+            </div>
+            <div id="employeePagination"
+              class="p-4 border-t flex flex-col md:flex-row justify-between items-center gap-3"></div>
+          </div>
+        </section>
+
+        <!-- SHIFT -->
+        <section id="view-manajemen-shift" class="view-section">
+          <div class="mb-5">
+            <h2 class="text-2xl font-extrabold">Manajemen Shift</h2>
+            <p class="text-sm text-slate-500">Kelola jadwal kerja karyawan SPBU.</p>
+          </div>
+          <div class="grid lg:grid-cols-3 gap-6">
+            <div class="card p-5">
+              <h3 class="font-bold mb-4">Tambah Shift</h3>
+              <form onsubmit="saveShift(event)" class="space-y-3">
+                <input id="shiftId" type="hidden">
+                <input id="shiftNama" required class="field" placeholder="Contoh: Shift Pagi">
+                <div class="grid grid-cols-2 gap-3">
+                  <input id="shiftMasuk" type="time" required class="field">
+                  <input id="shiftPulang" type="time" required class="field">
+                </div>
+                <input id="shiftKeterangan" class="field" placeholder="Keterangan">
+                <button class="w-full py-3 rounded-lg bg-indigo-600 text-white text-sm font-bold"><i
+                    class="fas fa-save mr-2"></i>Simpan Shift</button>
+                <button type="button" onclick="resetShiftForm()"
+                  class="w-full py-2 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold">Batal / Reset</button>
+              </form>
+            </div>
+            <div class="lg:col-span-2 card overflow-hidden">
+              <div class="p-4 border-b flex justify-between"><b>Daftar Shift</b><span id="shiftCount"
+                  class="text-xs text-slate-400"></span></div>
+              <div id="shiftList" class="p-4 space-y-3"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- KELOLA ABSENSI -->
+        <section id="view-kelola-absen" class="view-section">
+          <div class="mb-5">
+            <h2 class="text-2xl font-extrabold">Kelola Absensi</h2>
+            <p class="text-sm text-slate-500">Atur hari kerja dan hari libur operasional.</p>
+          </div>
+          <div class="grid lg:grid-cols-2 gap-6">
+            <div class="card p-5">
+              <h3 class="font-bold mb-4"><i class="fas fa-calendar-week text-indigo-500 mr-2"></i>Hari Kerja</h3>
+              <div id="workdaysBox" class="space-y-2"></div>
+              <button onclick="saveWorkdays()"
+                class="mt-4 w-full py-3 rounded-lg bg-indigo-600 text-white text-sm font-bold">Simpan Hari
+                Kerja</button>
+            </div>
+            <div class="card overflow-hidden">
+              <div class="p-5 border-b">
+                <h3 class="font-bold">Hari Libur</h3>
+                <p class="text-xs text-slate-500 mt-1">Tambahkan tanggal yang tidak dihitung sebagai jadwal kerja, atau
+                  impor banyak data dari Excel.</p>
+              </div>
+              <form onsubmit="addHoliday(event)" class="p-5 border-b grid md:grid-cols-3 gap-3">
+                <input id="holidayDate" type="date" required class="field">
+                <input id="holidayDesc" required class="field" placeholder="Keterangan">
+                <button class="py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-bold"><i
+                    class="fas fa-plus mr-2"></i>Tambah</button>
+              </form>
+              <div class="px-5 py-3 border-b bg-slate-50 flex flex-wrap items-center gap-2">
+                <button type="button" onclick="triggerImportLibur()"
+                  class="px-4 py-2 rounded-lg bg-sky-600 text-white text-xs font-bold"><i
+                    class="fas fa-file-upload mr-2"></i>Import Excel</button>
+                <input id="fileInputLibur" type="file" accept=".xlsx,.xls,.csv" class="hidden"
+                  onchange="handleFileImportLibur(this)">
+                <span class="text-[11px] text-slate-500">Kolom wajib: <b>Tanggal</b> dan <b>Keterangan</b></span>
+              </div>
+              <div id="holidayList" class="p-4"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MONITORING -->
+        <section id="view-monitoring" class="view-section">
+          <div class="flex flex-col md:flex-row justify-between md:items-end gap-3 mb-5">
+            <div>
+              <h2 class="text-2xl font-extrabold">Monitoring Kehadiran</h2>
+              <p id="monitoringDate" class="text-sm text-slate-500">Data absensi berdasarkan tanggal.</p>
+            </div>
+            <button onclick="exportMonitoring()"
+              class="px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-bold"><i
+                class="fas fa-file-excel mr-2"></i>Export Excel</button>
+          </div>
+          <div class="card overflow-hidden">
+            <div class="p-4 border-b flex flex-col md:flex-row gap-3">
+              <input id="monDate" type="date" onchange="renderMonitoring()" class="field md:w-44">
+              <select id="monStatus" onchange="renderMonitoring()" class="field md:w-48">
+                <option value="">Semua Status</option>
+                <option>Hadir</option>
+                <option>Terlambat</option>
+                <option>Sakit</option>
+                <option>Izin</option>
+                <option>Alpa</option>
+                <option>Belum Absen</option>
+              </select>
+              <select id="monShift" onchange="renderMonitoring()" class="field md:w-48">
+                <option value="">Semua Shift</option>
+              </select>
+              <input id="monSearch" oninput="renderMonitoring()" class="field flex-1" placeholder="Cari nama / ID...">
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-[10px] uppercase text-slate-500">
+                  <tr>
+                    <th class="p-3">No</th>
+                    <th class="p-3 text-left">Karyawan</th>
+                    <th class="p-3">ID</th>
+                    <th class="p-3">Shift</th>
+                    <th class="p-3">Masuk</th>
+                    <th class="p-3">Pulang</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3 text-left">Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody id="monitoringTable"></tbody>
+              </table>
+            </div>
+            <div id="monitoringPagination"
+              class="p-4 border-t flex flex-col md:flex-row justify-between items-center gap-3"></div>
+          </div>
+        </section>
+
+        <!-- REKAP -->
+        <section id="view-rekap-bulanan" class="view-section">
+          <div class="flex flex-col md:flex-row justify-between md:items-end gap-3 mb-5">
+            <div>
+              <h2 class="text-2xl font-extrabold">Rekap Absensi Bulanan</h2>
+              <p class="text-sm text-slate-500">Rekap harian setiap karyawan berdasarkan bulan, shift, dan hari kerja.
+              </p>
+            </div>
+            <button onclick="exportMonthly()"
+              class="px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-bold"><i
+                class="fas fa-file-excel mr-2"></i>Export Excel</button>
+          </div>
+          <div class="card overflow-hidden">
+            <div class="p-4 border-b flex flex-wrap gap-3 items-center">
+              <select id="rekapBulan" onchange="renderMonthly()" class="field w-40"></select>
+              <select id="rekapTahun" onchange="renderMonthly()" class="field w-28"></select>
+              <select id="rekapShift" onchange="renderMonthly()" class="field w-44">
+                <option value="">Semua Shift</option>
+              </select>
+              <input id="rekapSearch" oninput="renderMonthly()" class="field flex-1 min-w-[220px]"
+                placeholder="Cari nama / ID karyawan...">
+              <button onclick="renderMonthly()"
+                class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold"><i
+                  class="fas fa-sync-alt mr-1"></i>Tampilkan</button>
+            </div>
+            <div id="monthlySummary" class="grid grid-cols-2 md:grid-cols-5 gap-3 p-4 border-b bg-slate-50"></div>
+            <div class="p-3 border-b text-[11px] text-slate-500 flex flex-wrap gap-x-5 gap-y-2">
+              <span><b class="text-emerald-600">H</b> Hadir</span><span><b class="text-yellow-600">T</b>
+                Terlambat</span><span><b class="text-blue-600">I</b> Izin</span><span><b class="text-orange-600">S</b>
+                Sakit</span><span><b class="text-red-600">A</b> Alpa</span><span><b class="text-red-300">L</b> Hari
+                Libur</span><span><b class="text-slate-400">-</b> Belum ada data</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-max min-w-full text-xs border-collapse">
+                <thead id="monthlyTableHead" class="bg-slate-50 text-[10px] uppercase text-slate-500"></thead>
+                <tbody id="monthlyTable"></tbody>
+              </table>
+            </div>
+            <div id="monthlyPagination"
+              class="p-4 border-t flex flex-col md:flex-row justify-between items-center gap-3"></div>
+          </div>
+        </section>
+
+        <!-- REKAP DETAIL -->
+        <section id="view-rekap-absensi" class="view-section">
+          <div class="flex flex-col md:flex-row justify-between md:items-end gap-3 mb-5">
+            <div>
+              <h2 class="text-2xl font-extrabold">Laporan Kehadiran</h2>
+              <p class="text-sm text-slate-500">Laporan detail kehadiran karyawan berdasarkan rentang tanggal.</p>
+            </div>
+            <button onclick="exportDetailedRecap()"
+              class="px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">
+              <i class="fas fa-file-excel mr-2"></i>Export Excel
+            </button>
+          </div>
+
+          <div class="card overflow-hidden">
+            <div class="p-4 border-b">
+              <div class="detail-filter">
+                <div>
+                  <label class="label">Tanggal Mulai</label>
+                  <input id="rekapStart" type="date" class="field">
+                </div>
+                <div>
+                  <label class="label">Tanggal Akhir</label>
+                  <input id="rekapEnd" type="date" class="field">
+                </div>
+                <div>
+                  <label class="label">Shift</label>
+                  <select id="rekapDetailShift" class="field">
+                    <option value="">Semua Shift</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="label">Status</label>
+                  <select id="rekapDetailStatus" class="field">
+                    <option value="">Semua Status</option>
+                    <option>Hadir</option>
+                    <option>Terlambat</option>
+                    <option>Izin</option>
+                    <option>Sakit</option>
+                    <option>Alpa</option>
+                    <option>Belum Absen</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="label">Cari Karyawan</label>
+                  <input id="rekapDetailSearch" class="field" placeholder="Nama / ID karyawan...">
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-4">
+                <button onclick="applyDetailedRecap()"
+                  class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold">
+                  <i class="fas fa-filter mr-2"></i>Tampilkan
+                </button>
+                <button onclick="resetDetailedRecap()"
+                  class="px-4 py-2 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold">
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 p-4 border-b bg-slate-50">
+              <div class="bg-white rounded-xl border p-3">
+                <div class="text-[10px] uppercase font-bold text-slate-400">Total Baris</div>
+                <div id="rekapDetailTotal" class="text-xl font-extrabold mt-1">0</div>
+              </div>
+              <div class="bg-white rounded-xl border p-3">
+                <div class="text-[10px] uppercase font-bold text-emerald-500">Hadir</div>
+                <div id="rekapDetailHadir" class="text-xl font-extrabold mt-1">0</div>
+              </div>
+              <div class="bg-white rounded-xl border p-3">
+                <div class="text-[10px] uppercase font-bold text-yellow-500">Terlambat</div>
+                <div id="rekapDetailTerlambat" class="text-xl font-extrabold mt-1">0</div>
+              </div>
+              <div class="bg-white rounded-xl border p-3">
+                <div class="text-[10px] uppercase font-bold text-blue-500">Izin/Sakit</div>
+                <div id="rekapDetailIzinSakit" class="text-xl font-extrabold mt-1">0</div>
+              </div>
+              <div class="bg-white rounded-xl border p-3">
+                <div class="text-[10px] uppercase font-bold text-red-500">Alpa</div>
+                <div id="rekapDetailAlpa" class="text-xl font-extrabold mt-1">0</div>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-[10px] uppercase text-slate-500">
+                  <tr>
+                    <th class="p-3">No</th>
+                    <th class="p-3 text-left">Tanggal</th>
+                    <th class="p-3 text-left">Nama Karyawan</th>
+                    <th class="p-3 text-left">ID</th>
+                    <th class="p-3 text-left">Shift</th>
+                    <th class="p-3">Jam Masuk</th>
+                    <th class="p-3">Jam Pulang</th>
+                    <th class="p-3 text-left">Keterangan Waktu</th>
+                    <th class="p-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="detailedRecapTable"></tbody>
+              </table>
+            </div>
+
+            <div class="p-4 border-t flex flex-col md:flex-row justify-between items-center gap-3">
+              <div id="detailedRecapInfo" class="text-xs text-slate-400"></div>
+              <div id="detailedRecapPagination" class="flex gap-1"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABSEN KARYAWAN -->
+        <section id="view-absen-karyawan" class="view-section">
+          <div class="mb-5">
+            <h2 class="text-2xl font-extrabold">Absensi Karyawan</h2>
+            <p class="text-sm text-slate-500">Catat kehadiran masuk dan pulang.</p>
+          </div>
+          <div class="grid lg:grid-cols-2 gap-6">
+            <div class="card p-6">
+              <div class="text-center">
+                <div id="attendanceStatusIcon"
+                  class="w-20 h-20 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto text-3xl">
+                  <i class="fas fa-fingerprint"></i></div>
+                <h3 id="attendanceGreeting" class="font-extrabold text-xl mt-4">Absensi</h3>
+                <p id="attendanceInfo" class="text-xs text-slate-500 mt-2"></p>
+                <div class="grid grid-cols-2 gap-3 mt-6">
+                  <button id="btnCheckIn" onclick="selfCheckIn()"
+                    class="py-3 rounded-xl bg-emerald-600 text-white font-bold text-sm">Absen Masuk</button>
+                  <button id="btnCheckOut" onclick="selfCheckOut()"
+                    class="py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm">Absen Pulang</button>
+                </div>
+              </div>
+            </div>
+            <div class="card p-6">
+              <h3 class="font-bold mb-4">Riwayat Terbaru</h3>
+              <div id="myHistory" class="space-y-2"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- QR -->
+        <section id="view-qr" class="view-section">
+          <div class="mb-5">
+            <h2 class="text-2xl font-extrabold">QR Absensi</h2>
+            <p class="text-sm text-slate-500">Buat QR untuk identitas karyawan atau gunakan kamera untuk membaca QR.</p>
+          </div>
+          <div class="grid lg:grid-cols-2 gap-6">
+            <div class="card p-6">
+              <h3 class="font-bold mb-4">QR Karyawan</h3>
+              <select id="qrEmployee" class="field mb-4"></select>
+              <div id="qrCode" class="flex justify-center p-5"></div>
+              <button onclick="generateQR()"
+                class="w-full py-3 rounded-lg bg-indigo-600 text-white text-sm font-bold">Generate QR</button>
+            </div>
+            <div class="card p-6">
+              <h3 class="font-bold mb-4">Scanner QR</h3>
+              <p class="text-xs text-slate-500 mb-3">Untuk fitur scanner yang lebih lengkap, gunakan menu Scanner QR.
+              </p>
+              <div id="reader" class="rounded-xl overflow-hidden border border-slate-200"></div>
+              <button onclick="startScanner()"
+                class="mt-4 w-full py-3 rounded-lg bg-emerald-600 text-white text-sm font-bold">Mulai Scanner</button>
+              <button onclick="stopScanner()"
+                class="mt-2 w-full py-2 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold">Hentikan
+                Scanner</button>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- SCANNER QR -->
+        <section id="view-scanner" class="view-section">
+          <div class="mb-5">
+            <h2 class="text-2xl font-extrabold">Scanner QR Karyawan</h2>
+            <p id="scannerModeDescription" class="text-sm text-slate-500">Scan QR karyawan untuk mencatat absensi masuk.
+              Admin dapat scan karyawan lain, sedangkan karyawan hanya dapat scan QR miliknya sendiri.</p>
+          </div>
+
+          <div class="card p-4 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <h3 class="font-bold">Mode Absensi</h3>
+                <p class="text-xs text-slate-500 mt-1">Pilih apakah QR digunakan untuk mencatat jam masuk atau jam
+                  pulang.</p>
+              </div>
+              <div class="grid grid-cols-2 gap-2 md:w-80">
+                <button id="scannerModeMasuk" type="button" onclick="setScannerMode('masuk')"
+                  class="py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">
+                  <i class="fas fa-sign-in-alt mr-2"></i>Absensi Masuk
+                </button>
+                <button id="scannerModePulang" type="button" onclick="setScannerMode('pulang')"
+                  class="py-2.5 rounded-lg bg-slate-100 text-slate-500 text-xs font-bold">
+                  <i class="fas fa-sign-out-alt mr-2"></i>Absensi Pulang
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-6">
+            <div class="card p-6">
+              <h3 class="font-bold mb-4"><i class="fas fa-camera text-indigo-500 mr-2"></i>Kamera Scanner</h3>
+              <div id="readerDetail"
+                class="scanner-reader rounded-xl overflow-hidden border border-slate-200 bg-slate-50 min-h-[260px] flex items-center justify-center">
+                <div class="scanner-reader-overlay" aria-hidden="true">
+                  <div class="scanner-aim-box" id="scannerAimBox">
+                    <span class="scanner-corner tl"></span><span class="scanner-corner tr"></span>
+                    <span class="scanner-corner bl"></span><span class="scanner-corner br"></span>
+                    <span class="scanner-scanline"></span>
+                  </div>
+                </div>
+                <div class="text-center text-slate-400 text-xs p-6 scanner-placeholder">
+                  <i class="fas fa-qrcode text-4xl mb-3"></i>
+                  <div>Kamera belum dijalankan.</div>
+                </div>
+              </div>
+              <div id="scannerFeedback" class="scanner-feedback" role="status" aria-live="polite"></div>
+              <div id="scannerCameraStatus" class="scanner-camera-status">Kamera belum dijalankan.</div>
+              <div class="grid grid-cols-2 gap-3 mt-4">
+                <button onclick="startDetailScanner()"
+                  class="py-3 rounded-lg bg-emerald-600 text-white text-sm font-bold"><i
+                    class="fas fa-camera mr-2"></i>Mulai Scan</button>
+                <button onclick="stopDetailScanner()"
+                  class="py-3 rounded-lg bg-slate-100 text-slate-600 text-sm font-bold"><i
+                    class="fas fa-stop mr-2"></i>Hentikan</button>
+              </div>
+              <button onclick="switchScannerCamera()"
+                class="mt-3 w-full py-2.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs font-bold">
+                <i class="fas fa-camera-rotate mr-2"></i>Ganti Kamera
+              </button>
+              <p class="mt-2 text-[10px] text-slate-400 text-center">Kamera tetap aktif setelah scan berhasil dan siap
+                membaca QR karyawan berikutnya.</p>
+            </div>
+
+            <div class="card p-6">
+              <h3 class="font-bold mb-4"><i class="fas fa-id-card text-indigo-500 mr-2"></i>Absen dengan ID Karyawan
+              </h3>
+              <p class="text-xs text-slate-500 mb-4">Gunakan cara ini bila kamera tidak tersedia.</p>
+              <div class="flex gap-2">
+                <input id="manualEmployeeId" class="field" placeholder="Contoh: KRY001"
+                  onkeydown="if(event.key==='Enter')submitManualEmployeeId()">
+                <button onclick="submitManualEmployeeId()"
+                  class="px-4 rounded-lg bg-indigo-600 text-white text-xs font-bold">Absen</button>
+              </div>
+              <div id="scannerLastResult" class="scanner-result mt-5 p-4">
+                <div class="text-[10px] uppercase font-bold text-slate-400">Hasil Scan Terakhir</div>
+                <div id="scannerLastText" class="text-sm font-bold mt-1">Belum ada scan.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mt-6 overflow-hidden">
+            <div class="p-4 border-b flex justify-between items-center">
+              <div>
+                <h3 class="font-bold">Aktivitas Scan Hari Ini</h3>
+                <p class="text-xs text-slate-500 mt-1">Menampilkan catatan absensi terbaru.</p>
+              </div>
+              <button onclick="renderScannerHistory()"
+                class="px-3 py-2 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold">Refresh</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-[10px] uppercase text-slate-500">
+                  <tr>
+                    <th class="p-3">No</th>
+                    <th class="p-3 text-left">Karyawan</th>
+                    <th class="p-3">ID</th>
+                    <th class="p-3">Jam Masuk</th>
+                    <th class="p-3">Jam Pulang</th>
+                    <th class="p-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="scannerHistoryTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- KARTU KARYAWAN -->
+        <section id="view-kartu-karyawan" class="view-section">
+          <div class="flex flex-col md:flex-row justify-between md:items-end gap-3 mb-5">
+            <div>
+              <h2 class="text-2xl font-extrabold">Kartu Karyawan</h2>
+              <p class="text-sm text-slate-500">Kartu identitas digital lengkap dengan QR absensi.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="printEmployeeCard()"
+                class="px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-xs font-bold"><i
+                  class="fas fa-print mr-2"></i>Cetak Kartu</button>
+              <button onclick="bulkPrintEmployeeCards()"
+                class="px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-bold"><i
+                  class="fas fa-layer-group mr-2"></i>Cetak Semua Kartu</button>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-6">
+            <div class="card p-5">
+              <label class="label">Pilih Karyawan</label>
+              <select id="cardEmployee" onchange="renderEmployeeCard()" class="field"></select>
+              <div class="mt-4 text-xs text-slate-500">QR pada kartu dapat digunakan untuk absensi.</div>
+              <div class="mt-5 pt-5 border-t">
+                <label class="label">Filter Cetak Semua</label>
+                <select id="bulkCardShift" class="field" onchange="updateBulkCardInfo()">
+                  <option value="">Semua Shift</option>
+                </select>
+                <div id="bulkCardInfo" class="text-[11px] text-slate-500 mt-2">Semua karyawan akan dicetak.</div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-2">
+              <div id="employeeCardPrint" class="employee-card-print max-w-md mx-auto">
+                <div class="employee-card-head p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="text-[10px] uppercase tracking-[.2em] text-indigo-200">SPBU KOTOBARU CAHAYA UTAMA
+                      </div>
+                      <div class="font-extrabold mt-1">KARTU KARYAWAN</div>
+                      <div class="text-[10px] text-indigo-200 mt-1">No. SPBU 13.262.515</div>
+                    </div>
+                    <img src="logo-pertamina.png" class="w-10 h-10 object-contain bg-white rounded-lg p-1"
+                      alt="Pertamina">
+                  </div>
+                </div>
+                <div class="p-6">
+                  <div class="flex flex-col sm:flex-row items-center gap-5">
+                    <div id="cardQr" class="p-2 border rounded-xl bg-white"></div>
+                    <div class="text-center sm:text-left">
+                      <div id="cardNama" class="text-xl font-extrabold">-</div>
+                      <div id="cardId" class="font-mono text-indigo-600 font-bold mt-1">-</div>
+                      <div id="cardJabatan" class="text-xs text-slate-500 mt-2">-</div>
+                      <div id="cardShift" class="text-xs font-semibold text-slate-600 mt-1">-</div>
+                    </div>
+                  </div>
+                  <div class="mt-5 pt-4 border-t text-[10px] text-slate-400 text-center">QR berisi identitas internal
+                    karyawan untuk sistem absensi SPBU.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- EMPLOYEE MODAL -->
+  <div id="employeeModal" class="hidden fixed inset-0 z-[60] modal-backdrop items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl">
+      <div class="p-5 border-b flex justify-between items-center">
+        <h3 id="employeeModalTitle" class="font-extrabold">Tambah Karyawan</h3>
+        <button onclick="closeEmployeeModal()" class="text-slate-400 hover:text-slate-700"><i
+            class="fas fa-times"></i></button>
+      </div>
+      <form onsubmit="saveEmployee(event)" class="p-5 grid md:grid-cols-2 gap-4">
+        <input id="empOldId" type="hidden">
+        <div><label class="label">ID Karyawan</label><input id="empId" required class="field" placeholder="KRY003">
+        </div>
+        <div><label class="label">Nama</label><input id="empNama" required class="field" placeholder="Nama lengkap">
+        </div>
+        <div><label class="label">Jabatan</label><select id="empJabatan" required class="field">
+            <option value="">Pilih Jabatan</option>
+            <option value="Operator">Operator</option>
+            <option value="Kepala Operasional">Kepala Operasional</option>
+            <option value="Asisten Kepala Operasional">Asisten Kepala Operasional</option>
+            <option value="Supervisor">Supervisor</option>
+            <option value="Kepala Keuangan">Kepala Keuangan</option>
+          </select></div>
+        <div><label class="label">Shift</label><select id="empShift" class="field">
+            <option value="">Tanpa Shift</option>
+          </select></div>
+        <div><label class="label">No. HP</label><input id="empHp" class="field" placeholder="08xxxxxxxxxx"></div>
+        <div>
+          <label class="label">Password Akun</label>
+          <div class="relative">
+            <input id="empPassword" required class="field pr-10" value="">
+            <button type="button" onclick="togglePassword('empPassword','toggleEmpPasswordIcon')"
+              class="absolute right-0 top-0 h-full px-3 text-slate-400 hover:text-indigo-600"
+              aria-label="Tampilkan password akun">
+              <i class="fas fa-eye" id="toggleEmpPasswordIcon"></i>
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">Password ini digunakan karyawan untuk login.</p>
+        </div>
+        <div class="md:col-span-2 flex gap-2 justify-end pt-2">
+          <button type="button" onclick="closeEmployeeModal()"
+            class="px-4 py-2 rounded-lg bg-slate-100 text-slate-600 text-sm font-bold">Batal</button>
+          <button class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    .field {
+      width: 100%;
+      padding: .65rem .8rem;
+      border: 1px solid #e2e8f0;
+      border-radius: .65rem;
+      background: #f8fafc;
+      font-size: .8rem
+    }
+
+    .field:focus {
+      background: #fff;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, .1)
+    }
+
+    .label {
+      display: block;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 6px
+    }
+
+    .quick-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      background: #fff
+    }
+
+    .quick-btn:hover {
+      background: #eef2ff;
+      border-color: #c7d2fe
+    }
+
+    .quick-btn i {
+      width: 22px;
+      text-align: center;
+      color: #4f46e5
+    }
+  </style>
+
+  <script>
+    /* =========================================================
+       DATA LOCAL STORAGE
+       ========================================================= */
+    const KEY = {
+      employees: 'spbu_karyawan_data_v1',
+      shifts: 'spbu_shift_data_v1',
+      attendance: 'spbu_absensi_data_v1',
+      holidays: 'spbu_hari_libur_v1',
+      settings: 'spbu_settings_v1',
+      user: 'spbu_current_user_v1'
+    };
+
+    const DEFAULT_SHIFTS = [
+      { id: 'S01', nama: 'Shift Pagi', masuk: '06:00', pulang: '14:00', keterangan: 'Shift pagi operator' },
+      { id: 'S02', nama: 'Shift Siang', masuk: '14:00', pulang: '22:00', keterangan: 'Shift siang operator' },
+      { id: 'S03', nama: 'Shift Malam', masuk: '22:00', pulang: '06:00', keterangan: 'Shift malam operator' }
+    ];
+
+    const DEFAULT_EMPLOYEES = [
+      { id: 'KRY001', nama: 'Operator 1', jabatan: 'Operator', shift: 'S01', hp: '081234567890', password: '123456' },
+      { id: 'KRY002', nama: 'Operator 2', jabatan: 'Operator', shift: 'S02', hp: '081234567891', password: '123456' },
+      { id: 'KRY003', nama: 'Operator 3', jabatan: 'Operator', shift: 'S03', hp: '081234567892', password: '123456' }
+    ];
+
+    /* =========================================================
+       DATA STORAGE - LOCAL + DATABASE TERPUSAT
+       Isi CLOUD_API_URL dengan URL Web App Google Apps Script.
+       Jika kosong, sistem tetap berjalan dalam mode lokal.
+       ========================================================= */
+    const CLOUD_API_URL = 'https://script.google.com/macros/s/AKfycbzOt-KtRvAvGaOZcLSjF5ARSlJc70tE5_stpO9mVCA-haphRBC9N07OG5ZgfpQhd08a/exec'; // contoh: https://script.google.com/macros/s/XXXXXXXX/exec
+    const CLOUD_API_KEY = 'SPBU-V11-2026';
+    let cloudSyncing = false;
+    let cloudReady = false;
+
+    function getData(key, fallback = []) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw !== null) return JSON.parse(raw);
+      } catch (e) { console.error(e) }
+      localStorage.setItem(key, JSON.stringify(fallback));
+      return fallback;
+    }
+    function setData(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+      queueCloudSave();
+    }
+    function employees() { return getData(KEY.employees, DEFAULT_EMPLOYEES) }
+    function shifts() { return getData(KEY.shifts, DEFAULT_SHIFTS) }
+    function attendance() { return getData(KEY.attendance, []) }
+    function holidays() { return getData(KEY.holidays, []) }
+    function settings() { return getData(KEY.settings, { workdays: [1, 2, 3, 4, 5, 6] }) }
+
+    let cloudSaveTimer = null;
+    function queueCloudSave() {
+      if (!CLOUD_API_URL || !cloudReady) return;
+      clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = setTimeout(saveCloudData, 450);
+    }
+    async function cloudRequest(payload) {
+      if (!CLOUD_API_URL) return null;
+      const res = await fetch(CLOUD_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ ...payload, apiKey: CLOUD_API_KEY })
+      });
+      if (!res.ok) throw new Error('Server database tidak dapat dihubungi (' + res.status + ').');
+      const text = await res.text();
+      try { return JSON.parse(text) } catch (e) { return { ok: true } }
+    }
+    async function loadCloudData() {
+      if (!CLOUD_API_URL) return false;
+      try {
+        const url = CLOUD_API_URL + '?action=load&apiKey=' + encodeURIComponent(CLOUD_API_KEY);
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const d = await res.json();
+        if (!d.ok) throw new Error(d.error || 'Gagal mengambil database.');
+        if (d.initialized === false) {
+          cloudReady = true;
+          return true;
+        }
+        if (Array.isArray(d.employees)) localStorage.setItem(KEY.employees, JSON.stringify(d.employees));
+        if (Array.isArray(d.shifts)) localStorage.setItem(KEY.shifts, JSON.stringify(d.shifts));
+        if (Array.isArray(d.attendance)) localStorage.setItem(KEY.attendance, JSON.stringify(d.attendance));
+        if (Array.isArray(d.holidays)) localStorage.setItem(KEY.holidays, JSON.stringify(d.holidays));
+        if (d.settings) localStorage.setItem(KEY.settings, JSON.stringify(d.settings));
+        cloudReady = true;
+        return true;
+      } catch (err) {
+        console.error('Cloud load:', err);
+        cloudReady = false;
+        return false;
+      }
+    }
+    async function saveCloudData() {
+      if (!CLOUD_API_URL || !cloudReady || cloudSyncing) return;
+      cloudSyncing = true;
+      try {
+        await cloudRequest({
+          action: 'save', data: {
+            employees: employees(), shifts: shifts(), attendance: attendance(),
+            holidays: holidays(), settings: settings()
+          }
+        });
+      } catch (err) { console.error('Cloud save:', err) }
+      finally { cloudSyncing = false }
+    }
+    async function initializeCloud() {
+      if (!CLOUD_API_URL) return;
+      const ok = await loadCloudData();
+      if (!ok) {
+        alertBox('Database online belum terhubung. Sistem sementara memakai data di perangkat ini.', 'warning');
+        return;
+      }
+      /* Database baru: migrasikan data perangkat pertama kali. */
+      try {
+        const testUrl = CLOUD_API_URL + '?action=load&apiKey=' + encodeURIComponent(CLOUD_API_KEY);
+        const rr = await fetch(testUrl, { cache: 'no-store' });
+        const dd = await rr.json();
+        if (dd.initialized === false) {
+          await saveCloudData();
+        }
+      } catch (e) { console.error('Cloud init:', e) }
+      renderEmployees(); populateShiftSelects(); renderAdminDashboard();
+    }
+    function today() {
+      const d = new Date();
+      const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    function nowTime() { return new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) }
+    function esc(v) { return String(v ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m])) }
+    function uid(prefix = 'ID') { return prefix + Date.now().toString(36).toUpperCase().slice(-7) }
+
+    /* =========================================================
+       GLOBAL STATE - SPBU
+       Diambil dari pola coding sebelumnya, tetapi disesuaikan
+       sepenuhnya untuk sistem absensi karyawan SPBU.
+       ========================================================= */
+    let currentLoginRole = 'Karyawan';
+    let currentUser = null;
+    let chart = null;
+    let scanner = null;
+    let html5QrCode = null;       // alias kompatibilitas untuk modul QR sebelumnya
+    let isScanning = false;
+    let isSidebarOpen = true;
+
+
+    /* Tanggal header: tetap kompatibel dengan id dari tampilan awal. */
+    function updateCurrentDateDisplay() {
+      const el = document.getElementById('currentDateDisplay');
+      if (!el) return;
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      el.textContent = new Date().toLocaleDateString('id-ID', options);
+    }
+    updateCurrentDateDisplay();
+
+    function togglePassword(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (!input) return;
+      input.type = input.type === 'password' ? 'text' : 'password';
+      if (icon) {
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+      }
+    }
+
+
+    /* =========================================================
+       TABLE STATE & PAGINATION - SPBU
+       Digabung dari pola table-state sebelumnya, tetapi
+       seluruh istilah disesuaikan untuk karyawan SPBU.
+       ========================================================= */
+    const tableState = {
+      karyawan: { fullData: [], filtered: [], limit: 10, page: 1, search: '' },
+      monitoring: { fullData: [], filtered: [], limit: 10, page: 1, search: '', shiftFilter: '', statusFilter: '' },
+      rekap: { fullData: [], filtered: [], limit: 10, page: 1, search: '', shiftFilter: '', statusFilter: '' }
+    };
+
+    function handleTableSearch(type, query) {
+      if (!tableState[type]) return;
+      const state = tableState[type];
+      const value = String(query || '').toLowerCase().trim();
+      if (state.search !== value) state.page = 1;
+      state.search = value;
+    }
+
+    function handleTableShiftFilter(type, value) {
+      if (!tableState[type]) return;
+      tableState[type].shiftFilter = value || '';
+      tableState[type].page = 1;
+    }
+
+    function handleTableStatusFilter(type, value) {
+      if (!tableState[type]) return;
+      tableState[type].statusFilter = value || '';
+      tableState[type].page = 1;
+    }
+
+    function handleTableLimit(type, limit) {
+      if (!tableState[type]) return;
+      tableState[type].limit = Number(limit) || 10;
+      tableState[type].page = 1;
+    }
+
+    function changePage(type, direction) {
+      const state = tableState[type];
+      if (!state) return;
+      const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.limit));
+      state.page = Math.min(totalPages, Math.max(1, state.page + Number(direction)));
+      if (type === 'karyawan') renderEmployees();
+      else if (type === 'monitoring') renderMonitoring();
+      else if (type === 'rekap') renderMonthly();
+    }
+
+    function pageSlice(type, data) {
+      const state = tableState[type];
+      state.fullData = [...data];
+      state.filtered = [...data];
+      const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.limit));
+      state.page = Math.min(state.page, totalPages);
+      const start = (state.page - 1) * state.limit;
+      return {
+        rows: state.filtered.slice(start, start + state.limit),
+        start,
+        totalPages
+      };
+    }
+
+    function renderTablePagination(type, containerId) {
+      const box = document.getElementById(containerId);
+      const state = tableState[type];
+      if (!box || !state) return;
+
+      const total = state.filtered.length;
+      const totalPages = Math.max(1, Math.ceil(total / state.limit));
+      const start = total ? (state.page - 1) * state.limit + 1 : 0;
+      const end = Math.min(state.page * state.limit, total);
+
+      box.innerHTML = `
+    <div class="text-xs text-slate-400">
+      Menampilkan ${start}-${end} dari ${total} data
+    </div>
+    <div class="flex items-center gap-1">
+      <button onclick="changePage('${type}',-1)"
+        class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs ${state.page <= 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}"
+        ${state.page <= 1 ? 'disabled' : ''}>
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <span class="px-3 py-1.5 rounded-lg bg-slate-100 text-xs font-bold">
+        ${state.page} / ${totalPages}
+      </span>
+      <button onclick="changePage('${type}',1)"
+        class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs ${state.page >= totalPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}"
+        ${state.page >= totalPages ? 'disabled' : ''}>
+        <i class="fas fa-chevron-right"></i>
+      </button>
+      <select onchange="handleTableLimit('${type}',this.value);${type === 'karyawan' ? 'renderEmployees()' : type === 'monitoring' ? 'renderMonitoring()' : 'renderMonthly()'}"
+        class="ml-1 px-2 py-1.5 rounded-lg border border-slate-200 text-xs">
+        ${[10, 25, 50].map(n => `<option value="${n}" ${state.limit === n ? 'selected' : ''}>${n}/halaman</option>`).join('')}
+      </select>
+    </div>
+  `;
+    }
+
+    /* =========================================================
+       LOGIN
+       ========================================================= */
+    function switchLoginTab(role) {
+      currentLoginRole = role;
+      const k = role === 'Karyawan';
+      document.getElementById('formKaryawanLogin').classList.toggle('hidden', !k);
+      document.getElementById('formAdminLogin').classList.toggle('hidden', k);
+      document.getElementById('btnKaryawanTab').className = k
+        ? 'flex-1 py-2.5 rounded-lg text-sm font-bold bg-white text-indigo-700 shadow-sm'
+        : 'flex-1 py-2.5 rounded-lg text-sm font-medium text-slate-500';
+      document.getElementById('btnAdminTab').className = !k
+        ? 'flex-1 py-2.5 rounded-lg text-sm font-bold bg-white text-indigo-700 shadow-sm'
+        : 'flex-1 py-2.5 rounded-lg text-sm font-medium text-slate-500';
+      document.getElementById('loginError').classList.add('hidden');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      currentUser = null;
+      if (CLOUD_API_URL) {
+        const ok = await loadCloudData();
+        if (!ok) {
+          const box = document.getElementById('loginError');
+          document.getElementById('errorText').textContent = 'Database online belum terhubung. Hubungi Supervisor / Admin.';
+          box.classList.remove('hidden');
+          return;
+        }
+      }
+      let user = null;
+      if (currentLoginRole === 'Karyawan') {
+        const id = document.getElementById('idKaryawan').value.trim().toUpperCase();
+        const pw = document.getElementById('passwordKaryawan').value;
+        user = employees().find(x => x.id.toUpperCase() === id && x.password === pw);
+        if (user) currentUser = { role: 'Karyawan', id: user.id, nama: user.nama, jabatan: user.jabatan, shift: user.shift };
+      } else {
+        const u = document.getElementById('usernameAdmin').value.trim();
+        const p = document.getElementById('passwordAdmin').value;
+        if (u === 'admin' && p === 'admin123') currentUser = { role: 'admin', username: u, nama: 'Administrator' };
+      }
+      if (!user && !currentUser) {
+        const box = document.getElementById('loginError');
+        document.getElementById('errorText').textContent = currentLoginRole === 'Karyawan'
+          ? 'ID Karyawan atau password salah.'
+          : 'Username atau password Supervisor/Admin salah.';
+        box.classList.remove('hidden');
+        return;
+      }
+      localStorage.setItem(KEY.user, JSON.stringify(currentUser));
+      enterApp();
+    }
+
+    function enterApp() {
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('dashboardContainer').classList.remove('hidden');
+      document.getElementById('navUserName').textContent = currentUser.nama;
+      document.getElementById('navUserRole').textContent = currentUser.role === 'admin' ? 'Supervisor / Admin' : 'Karyawan';
+      document.getElementById('navUserInitial').textContent = (currentUser.nama || 'U').charAt(0).toUpperCase();
+      buildMenu();
+      resetScannerMode();
+      if (currentUser.role === 'admin') {
+        showView('view-admin-dashboard');
+        refreshAll();
+      } else {
+        showView('view-karyawan-dashboard');
+        refreshAll();
+      }
+    }
+
+    function logout() {
+      stopScanner();
+      stopDetailScanner();
+      currentUser = null;
+      localStorage.removeItem(KEY.user);
+      document.getElementById('dashboardContainer').classList.add('hidden');
+      document.getElementById('loginPage').classList.remove('hidden');
+      document.getElementById('idKaryawan').value = '';
+      document.getElementById('passwordKaryawan').value = '';
+      document.getElementById('usernameAdmin').value = '';
+      document.getElementById('passwordAdmin').value = '';
+      switchLoginTab('Karyawan');
+    }
+
+    // Helper menu sidebar: mengambil konsep createItem dari coding sebelumnya,
+    // tetapi disesuaikan dengan struktur SPBU V5 dan tetap memakai button/showView.
+    function createItem(label, icon, onclick, isDefaultActive = false, viewId = '') {
+      const activeClass = isDefaultActive ? ' active' : '';
+      return `
+    <button type="button" data-view="${esc(viewId)}" onclick="${onclick}" aria-label="${esc(label)}"
+      class="sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-indigo-100 hover:bg-white/10 text-left text-xs font-semibold${activeClass}">
+      <i class="fas ${icon} w-5 text-center flex-shrink-0"></i>
+      <span class="sidebar-label">${esc(label)}</span>
+    </button>`;
+    }
+
+    // Menu V5 menggunakan pola role-based dari coding sebelumnya.
+    // Item sekolah tidak dimasukkan karena sistem ini khusus SPBU.
+    function buildMenu() {
+      const menu = document.getElementById('sidebarMenu');
+      if (!menu || !currentUser) return;
+      let menuHTML = '';
+
+      // --- MENU UNTUK ADMIN / SUPERVISOR ---
+      if (currentUser.role === 'admin') {
+        menuHTML += createItem('Dashboard', 'fa-home', "showView('view-admin-dashboard')", true, 'view-admin-dashboard');
+        menuHTML += createItem('Data Karyawan', 'fa-user-tie', "showView('view-data-karyawan')", false, 'view-data-karyawan');
+        menuHTML += createItem('Manajemen Shift', 'fa-clock', "showView('view-manajemen-shift')", false, 'view-manajemen-shift');
+        menuHTML += createItem('Laporan Kehadiran', 'fa-clipboard-list', "showView('view-rekap-absensi')", false, 'view-rekap-absensi');
+        menuHTML += createItem('Rekap Bulanan', 'fa-calendar-alt', "showView('view-rekap-bulanan')", false, 'view-rekap-bulanan');
+        menuHTML += createItem('Kelola Absensi', 'fa-calendar-check', "showView('view-kelola-absen')", false, 'view-kelola-absen');
+        menuHTML += createItem('Monitoring Kehadiran', 'fa-desktop', "showView('view-monitoring')", false, 'view-monitoring');
+        menuHTML += createItem('Scanner QR', 'fa-camera', "showView('view-scanner')", false, 'view-scanner');
+        menuHTML += createItem('Kartu Karyawan', 'fa-id-badge', "showView('view-kartu-karyawan')", false, 'view-kartu-karyawan');
+        menuHTML += createItem('QR Absensi', 'fa-qrcode', "showView('view-qr')", false, 'view-qr');
+        showView('view-admin-dashboard');
+      } else {
+        menuHTML += createItem('Dashboard', 'fa-home', "showView('view-karyawan-dashboard')", true, 'view-karyawan-dashboard');
+        menuHTML += createItem('Absensi Saya', 'fa-fingerprint', "showView('view-absen-karyawan')", false, 'view-absen-karyawan');
+        menuHTML += createItem('Scanner QR', 'fa-camera', "showView('view-scanner')", false, 'view-scanner');
+        menuHTML += createItem('Kartu Saya', 'fa-id-badge', "showView('view-kartu-karyawan')", false, 'view-kartu-karyawan');
+        menuHTML += createItem('QR Absensi', 'fa-qrcode', "showView('view-qr')", false, 'view-qr');
+        showView('view-karyawan-dashboard');
+      }
+
+      menu.innerHTML = menuHTML;
+    }
+
+    function showView(id) {
+      document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+      const el = document.getElementById(id);
+      if (el) el.classList.add('active');
+
+      const titles = {
+        'view-admin-dashboard': 'Dashboard Admin', 'view-karyawan-dashboard': 'Dashboard Karyawan',
+        'view-data-karyawan': 'Data Karyawan', 'view-manajemen-shift': 'Manajemen Shift',
+        'view-kelola-absen': 'Kelola Absensi', 'view-monitoring': 'Monitoring Kehadiran',
+        'view-rekap-bulanan': 'Rekap Absensi Bulanan', 'view-rekap-absensi': 'Laporan Kehadiran',
+        'view-absen-karyawan': 'Absensi Saya', 'view-scanner': 'Scanner QR', 'view-kartu-karyawan': 'Kartu Karyawan', 'view-qr': 'QR Absensi'
+      };
+      document.getElementById('pageTitle').textContent = titles[id] || 'Dashboard';
+      document.querySelectorAll('.sidebar-item').forEach(b => b.classList.toggle('active', b.dataset.view === id));
+
+      if (id === 'view-data-karyawan') renderEmployees();
+      if (id === 'view-manajemen-shift') renderShifts();
+      if (id === 'view-kelola-absen') renderWorkdays();
+      if (id === 'view-monitoring') initMonitoring();
+      if (id === 'view-rekap-bulanan') initMonthly();
+      if (id === 'view-rekap-absensi') initDetailedRecap();
+      if (id === 'view-karyawan-dashboard') renderMyDashboard();
+      if (id === 'view-absen-karyawan') renderMyAttendance();
+      if (id === 'view-scanner') { setScannerMode(scannerMode); renderScannerHistory(); }
+      if (id === 'view-kartu-karyawan') initEmployeeCard();
+      if (id === 'view-qr') populateQR();
+      if (window.innerWidth < 768) closeMobileSidebar();
+    }
+
+    function toggleSidebar() {
+      const s = document.getElementById('sidebar'), o = document.getElementById('mobileOverlay');
+      const open = s.classList.contains('-translate-x-full');
+      s.classList.toggle('-translate-x-full', !open);
+      o.classList.toggle('hidden', !open);
+      isSidebarOpen = open;
+    }
+    function closeMobileSidebar() {
+      if (window.innerWidth < 768) {
+        document.getElementById('sidebar').classList.add('-translate-x-full');
+        document.getElementById('mobileOverlay').classList.add('hidden');
+      }
+    }
+
+    /* =========================================================
+       DASHBOARD
+       ========================================================= */
+    function refreshAll() {
+      updateDate();
+      renderAdminDashboard();
+      renderMyDashboard();
+      renderEmployees();
+      renderShifts();
+      renderWorkdays();
+      renderHolidays();
+      populateShiftSelects();
+      initMonitoring();
+      initMonthly();
+      initDetailedRecap();
+      initEmployeeCard();
+      renderScannerHistory();
+    }
+    function updateDate() {
+      const text = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+      document.getElementById('currentDate').textContent = text;
+    }
+    function statusTodayFor(id) {
+      const a = attendance().find(x => x.tanggal === today() && x.idKaryawan === id);
+      return a || { status: 'Belum Absen', jamMasuk: '-', jamPulang: '-', keterangan: '' };
+    }
+    function animateValue(id, start, end, duration = 700) {
+      const el = document.getElementById(id); if (!el) return;
+      const from = Number(start) || 0, to = Number(end) || 0;
+      const diff = to - from, startTime = performance.now();
+      function tick(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(from + diff * eased);
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function renderAdminDashboard() {
+      const es = employees(), as = attendance().filter(x => x.tanggal === today());
+      const counts = { Hadir: 0, Terlambat: 0, Sakit: 0, Izin: 0, Alpa: 0 };
+      as.forEach(a => { if (counts[a.status] !== undefined) counts[a.status]++ });
+      const recorded = counts.Hadir + counts.Terlambat + counts.Sakit + counts.Izin + counts.Alpa;
+      const belumAbsen = Math.max(0, es.length - recorded);
+
+      animateValue('admTotal', 0, es.length);
+      animateValue('admHadir', 0, counts.Hadir);
+      animateValue('admTerlambat', 0, counts.Terlambat);
+      animateValue('admIzinSakit', 0, counts.Izin + counts.Sakit);
+      animateValue('admAlpa', 0, counts.Alpa);
+
+      const ctx = document.getElementById('attendanceChart');
+      if (!ctx) return;
+      if (chart) chart.destroy();
+
+      if (typeof ChartDataLabels !== 'undefined' && !Chart.registry.plugins.get('datalabels')) {
+        Chart.register(ChartDataLabels);
+      }
+
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Hadir', 'Terlambat', 'Izin', 'Sakit', 'Alpa', 'Belum Absen'],
+          datasets: [{
+            label: 'Jumlah Karyawan',
+            data: [counts.Hadir, counts.Terlambat, counts.Izin, counts.Sakit, counts.Alpa, belumAbsen],
+            backgroundColor: ['#10B981', '#EAB308', '#3B82F6', '#F97316', '#EF4444', '#9CA3AF'],
+            borderRadius: 8,
+            barPercentage: .55,
+            categoryPercentage: .72
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 650, easing: 'easeOutQuart' },
+          plugins: {
+            legend: { display: false },
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              formatter: (value) => value > 0 ? value : '',
+              font: { weight: 'bold', size: 11 },
+              color: '#475569'
+            },
+            tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} karyawan` } }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 }, grid: { borderDash: [2, 2] } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    function renderMyDashboard() {
+      if (!currentUser || currentUser.role !== 'Karyawan') return;
+      const e = employees().find(x => x.id === currentUser.id), a = statusTodayFor(currentUser.id), s = shifts().find(x => x.id === e?.shift);
+      document.getElementById('myStatus').textContent = a.status;
+      document.getElementById('myMasuk').textContent = a.jamMasuk || '-';
+      document.getElementById('myPulang').textContent = a.jamPulang || '-';
+      document.getElementById('myShift').textContent = s?.nama || '-';
+      document.getElementById('myProfileText').textContent = `${e?.nama || ''} • ${e?.jabatan || ''} • ${s?.nama || ''}`;
+    }
+
+    /* =========================================================
+       EMPLOYEE CRUD
+       ========================================================= */
+    function openEmployeeModal(id = null) {
+      populateShiftSelects();
+      const m = document.getElementById('employeeModal');
+      m.classList.remove('hidden'); m.classList.add('flex');
+      document.getElementById('employeeModalTitle').textContent = id ? 'Edit Karyawan' : 'Tambah Karyawan';
+      if (id) {
+        const e = employees().find(x => x.id === id);
+        if (!e) return;
+        document.getElementById('empOldId').value = e.id;
+        document.getElementById('empId').value = e.id;
+        document.getElementById('empNama').value = e.nama;
+        document.getElementById('empJabatan').value = e.jabatan;
+        document.getElementById('empShift').value = e.shift;
+        document.getElementById('empHp').value = e.hp || '';
+        document.getElementById('empPassword').value = e.password || generateEmployeePassword();
+      } else {
+        document.querySelector('#employeeModal form').reset();
+        document.getElementById('empOldId').value = '';
+        document.getElementById('empPassword').value = generateEmployeePassword();
+      }
+    }
+    function generateEmployeePassword() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+      let out = '';
+      for (let i = 0; i < 8; i++)out += chars.charAt(Math.floor(Math.random() * chars.length));
+      return out;
+    }
+    function closeEmployeeModal() {
+      const m = document.getElementById('employeeModal');
+      m.classList.add('hidden'); m.classList.remove('flex');
+    }
+    function saveEmployee(e) {
+      e.preventDefault();
+      const old = document.getElementById('empOldId').value.trim();
+      const obj = {
+        id: document.getElementById('empId').value.trim().toUpperCase(),
+        nama: document.getElementById('empNama').value.trim(),
+        jabatan: document.getElementById('empJabatan').value.trim(),
+        shift: document.getElementById('empShift').value,
+        hp: document.getElementById('empHp').value.trim(),
+        password: document.getElementById('empPassword').value
+      };
+      let data = employees();
+      if (!old && data.some(x => x.id === obj.id)) return alertBox('ID Karyawan sudah digunakan.', 'error');
+      if (old) {
+        const i = data.findIndex(x => x.id === old);
+        if (i < 0) return;
+        data[i] = obj;
+        attendance().forEach(a => { if (a.idKaryawan === old) a.idKaryawan = obj.id });
+      } else data.push(obj);
+      setData(KEY.employees, data);
+      closeEmployeeModal(); renderEmployees(); populateShiftSelects(); renderAdminDashboard();
+      alertBox('Data karyawan berhasil disimpan.', 'success');
+    }
+    function toggleEmployeePassword(id) {
+      if (currentUser?.role !== 'admin') return alertBox('Hanya Supervisor / Admin yang dapat melihat password akun.', 'warning');
+      const e = employees().find(x => x.id === id); if (!e) return;
+      const span = document.getElementById('empPw_' + id);
+      const icon = document.getElementById('empPwIcon_' + id);
+      if (!span || !icon) return;
+      const visible = span.dataset.visible === '1';
+      span.textContent = visible ? '••••••••' : (e.password || '-');
+      span.dataset.visible = visible ? '0' : '1';
+      icon.className = visible ? 'fas fa-eye' : 'fas fa-eye-slash';
+    }
+    function copyEmployeePassword(id) {
+      if (currentUser?.role !== 'admin') return alertBox('Hanya Supervisor / Admin yang dapat melihat password akun.', 'warning');
+      const e = employees().find(x => x.id === id); if (!e) return;
+      const pw = e.password || '';
+      if (!pw) return alertBox('Password akun belum tersedia.', 'warning');
+      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(pw).then(() => alertBox('Password berhasil disalin.', 'success')).catch(() => alertBox('Gagal menyalin password.', 'error'));
+      else alertBox('Fitur salin tidak tersedia di browser ini.', 'warning');
+    }
+
+    function deleteEmployee(id) {
+      if (!confirm('Hapus karyawan ' + id + '?')) return;
+      setData(KEY.employees, employees().filter(x => x.id !== id));
+      setData(KEY.attendance, attendance().filter(x => x.idKaryawan !== id));
+      renderEmployees(); renderAdminDashboard(); populateShiftSelects();
+    }
+    function renderEmployees() {
+      const tbody = document.getElementById('employeeTable'); if (!tbody) return;
+      const state = tableState.karyawan;
+      const q = (document.getElementById('employeeSearch')?.value || '').toLowerCase().trim();
+      handleTableSearch('karyawan', q);
+
+      const ss = shifts();
+      const data = employees();
+      const rows = data.filter(e =>
+        (e.id + ' ' + e.nama + ' ' + e.jabatan + ' ' + (ss.find(s => s.id === e.shift)?.nama || '')).toLowerCase().includes(state.search)
+      );
+
+      state.fullData = [...data];
+      state.filtered = [...rows];
+
+      const totalPages = Math.max(1, Math.ceil(rows.length / state.limit));
+      state.page = Math.min(state.page, totalPages);
+      const start = (state.page - 1) * state.limit;
+      const pageRows = rows.slice(start, start + state.limit);
+
+      tbody.innerHTML = pageRows.length ? pageRows.map((e, i) => {
+        const s = ss.find(x => x.id === e.shift);
+        return `<tr class="border-t border-slate-100 hover:bg-slate-50">
+      <td class="p-3 text-center">${start + i + 1}</td>
+      <td class="p-3 font-bold">${esc(e.id)}</td>
+      <td class="p-3">${esc(e.nama)}</td>
+      <td class="p-3">${esc(e.jabatan)}</td>
+      <td class="p-3">${esc(s?.nama || '-')}</td>
+      <td class="p-3">${esc(e.hp || '-')}</td>
+      <td class="p-3 whitespace-nowrap">
+        <div class="inline-flex items-center gap-2">
+          <span id="empPw_${esc(e.id)}" class="font-mono text-xs bg-slate-100 px-2 py-1 rounded">••••••••</span>
+          <button onclick="toggleEmployeePassword('${esc(e.id)}')" class="px-2 py-1 rounded bg-amber-50 text-amber-700 text-xs" title="Lihat password">
+            <i class="fas fa-eye" id="empPwIcon_${esc(e.id)}"></i>
+          </button>
+          <button onclick="copyEmployeePassword('${esc(e.id)}')" class="px-2 py-1 rounded bg-emerald-50 text-emerald-700 text-xs" title="Salin password">
+            <i class="fas fa-copy"></i>
+          </button>
+        </div>
+      </td>
+      <td class="p-3 text-center whitespace-nowrap">
+        <button onclick="openEmployeeModal('${esc(e.id)}')" class="px-2 py-1 rounded bg-blue-50 text-blue-600 text-xs"><i class="fas fa-edit"></i></button>
+        <button onclick="showEmployeeQR('${esc(e.id)}')" class="px-2 py-1 rounded bg-indigo-50 text-indigo-600 text-xs"><i class="fas fa-qrcode"></i></button>
+        <button onclick="deleteEmployee('${esc(e.id)}')" class="px-2 py-1 rounded bg-red-50 text-red-600 text-xs"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`;
+      }).join('') : `<tr><td colspan="8" class="p-10 text-center text-slate-400">Belum ada data karyawan.</td></tr>`;
+
+      renderTablePagination('karyawan', 'employeePagination');
+    }
+
+
+    /* =========================================================
+       SHIFT
+       ========================================================= */
+    function saveShift(e) {
+      e.preventDefault();
+      const id = document.getElementById('shiftId').value;
+      const obj = { id: id || uid('S'), nama: document.getElementById('shiftNama').value.trim(), masuk: document.getElementById('shiftMasuk').value, pulang: document.getElementById('shiftPulang').value, keterangan: document.getElementById('shiftKeterangan').value.trim() };
+      let data = shifts();
+      if (id) data = data.map(x => x.id === id ? obj : x); else data.push(obj);
+      setData(KEY.shifts, data); resetShiftForm(); renderShifts(); populateShiftSelects(); renderEmployees();
+      alertBox('Shift berhasil disimpan.', 'success');
+    }
+    function resetShiftForm() {
+      document.getElementById('shiftId').value = '';
+      document.getElementById('shiftNama').value = '';
+      document.getElementById('shiftMasuk').value = '';
+      document.getElementById('shiftPulang').value = '';
+      document.getElementById('shiftKeterangan').value = '';
+    }
+    function editShift(id) {
+      const s = shifts().find(x => x.id === id); if (!s) return;
+      document.getElementById('shiftId').value = s.id;
+      document.getElementById('shiftNama').value = s.nama;
+      document.getElementById('shiftMasuk').value = s.masuk;
+      document.getElementById('shiftPulang').value = s.pulang;
+      document.getElementById('shiftKeterangan').value = s.keterangan || '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function deleteShift(id) {
+      if (employees().some(e => e.shift === id)) return alertBox('Shift masih digunakan karyawan. Pindahkan karyawan terlebih dahulu.', 'warning');
+      if (!confirm('Hapus shift ini?')) return;
+      setData(KEY.shifts, shifts().filter(x => x.id !== id)); renderShifts(); populateShiftSelects();
+    }
+    function renderShifts() {
+      const box = document.getElementById('shiftList'); if (!box) return;
+      const data = shifts();
+      document.getElementById('shiftCount').textContent = data.length + ' shift';
+      box.innerHTML = data.length ? data.map(s => `
+    <div class="border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div><div class="font-bold">${esc(s.nama)}</div><div class="text-xs text-slate-500 mt-1"><i class="far fa-clock mr-1"></i>${s.masuk} - ${s.pulang} • ${esc(s.keterangan || '')}</div></div>
+      <div class="flex gap-2"><button onclick="editShift('${s.id}')" class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold">Edit</button><button onclick="deleteShift('${s.id}')" class="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-bold">Hapus</button></div>
+    </div>`).join('') : `<div class="text-center p-8 text-slate-400 text-sm">Belum ada shift.</div>`;
+    }
+
+    /* =========================================================
+       WORKDAYS + HOLIDAYS
+       ========================================================= */
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    function renderWorkdays() {
+      const box = document.getElementById('workdaysBox'); if (!box) return;
+      const selected = settings().workdays || [1, 2, 3, 4, 5, 6];
+      box.innerHTML = dayNames.map((d, i) => `
+    <label class="flex items-center justify-between p-3 rounded-lg border border-slate-200">
+      <span class="text-sm font-semibold">${d}</span>
+      <input type="checkbox" data-workday="${i}" ${selected.includes(i) ? 'checked' : ''} class="w-4 h-4 accent-indigo-600">
+    </label>`).join('');
+    }
+    function saveWorkdays() {
+      const workdays = [...document.querySelectorAll('[data-workday]:checked')].map(x => Number(x.dataset.workday));
+      setData(KEY.settings, { workdays }); alertBox('Hari kerja disimpan.', 'success'); renderMonthly();
+    }
+    function addHoliday(e) {
+      e.preventDefault();
+      const d = document.getElementById('holidayDate').value, desc = document.getElementById('holidayDesc').value.trim();
+      if (!d || !desc) return alertBox('Tanggal dan keterangan wajib diisi.', 'warning');
+      let data = holidays();
+      if (data.some(x => x.date === d)) return alertBox('Tanggal tersebut sudah ada.', 'warning');
+      data.push({ id: uid('H'), date: d, description: desc }); data.sort((a, b) => a.date.localeCompare(b.date));
+      setData(KEY.holidays, data); e.target.reset(); renderHolidays(); renderMonthly();
+      alertBox('Hari libur berhasil ditambahkan.', 'success');
+    }
+    function editHoliday(id) {
+      const data = holidays();
+      const item = data.find(x => x.id === id);
+      if (!item) return alertBox('Data hari libur tidak ditemukan.', 'error');
+      const newDate = window.prompt('Tanggal hari libur (YYYY-MM-DD):', item.date);
+      if (newDate === null) return;
+      const d = newDate.trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return alertBox('Format tanggal harus YYYY-MM-DD.', 'warning');
+      if (data.some(x => x.id !== id && x.date === d)) return alertBox('Tanggal tersebut sudah ada.', 'warning');
+      const newDesc = window.prompt('Keterangan hari libur:', item.description || '');
+      if (newDesc === null) return;
+      const desc = newDesc.trim();
+      if (!desc) return alertBox('Keterangan wajib diisi.', 'warning');
+      item.date = d; item.description = desc;
+      data.sort((a, b) => a.date.localeCompare(b.date));
+      setData(KEY.holidays, data); renderHolidays(); renderMonthly();
+      alertBox('Hari libur berhasil diperbarui.', 'success');
+    }
+    function deleteHoliday(id) {
+      const item = holidays().find(x => x.id === id);
+      if (!item) return;
+      if (!window.confirm('Hapus hari libur ' + formatDate(item.date) + '?')) return;
+      setData(KEY.holidays, holidays().filter(x => x.id !== id)); renderHolidays(); renderMonthly();
+      alertBox('Hari libur berhasil dihapus.', 'success');
+    }
+    function triggerImportLibur() {
+      if (currentUser?.role !== 'admin') return alertBox('Hanya Supervisor / Admin yang dapat mengimpor data hari libur.', 'warning');
+      document.getElementById('fileInputLibur')?.click();
+    }
+    function handleFileImportLibur(input) {
+      const file = input?.files?.[0];
+      if (!file) return;
+      if (!window.XLSX) { input.value = ''; return alertBox('Library Excel belum tersedia.', 'error'); }
+      showLoading();
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+          if (!rows.length) { hideLoading(); input.value = ''; return alertBox('File Excel kosong atau format salah.', 'error'); }
+          const first = rows[0] || {};
+          const hasTanggal = Object.prototype.hasOwnProperty.call(first, 'Tanggal');
+          const hasKet = Object.prototype.hasOwnProperty.call(first, 'Keterangan');
+          if (!hasTanggal || !hasKet) {
+            hideLoading(); input.value = '';
+            return alertBox('Format Excel salah. Wajib ada kolom header: Tanggal dan Keterangan.', 'error');
+          }
+          processImportLibur(rows, input);
+        } catch (err) {
+          hideLoading(); input.value = '';
+          alertBox('Gagal membaca file Excel: ' + (err?.message || err), 'error');
+        }
+      };
+      reader.onerror = function () { hideLoading(); input.value = ''; alertBox('Gagal membaca file Excel.', 'error'); };
+      reader.readAsArrayBuffer(file);
+    }
+    function normalizeHolidayDate(value) {
+      if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        const y = value.getFullYear(), m = String(value.getMonth() + 1).padStart(2, '0'), d = String(value.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        const parsed = XLSX.SSF.parse_date_code(value);
+        if (parsed?.y && parsed?.m && parsed?.d) return `${parsed.y}-${String(parsed.m).padStart(2, '0')}-${String(parsed.d).padStart(2, '0')}`;
+      }
+      const raw = String(value ?? '').trim();
+      if (!raw) return '';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+      let m = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (m) return `${m[3]}-${String(m[2]).padStart(2, '0')}-${String(m[1]).padStart(2, '0')}`;
+      m = raw.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+      if (m) {
+        const names = { januari: 1, februari: 2, maret: 3, april: 4, mei: 5, juni: 6, juli: 7, agustus: 8, september: 9, oktober: 10, november: 11, desember: 12, january: 1, february: 2, march: 3, may: 5, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12 };
+        const mm = names[m[2].toLowerCase()];
+        if (mm) return `${m[3]}-${String(mm).padStart(2, '0')}-${String(m[1]).padStart(2, '0')}`;
+      }
+      return '';
+    }
+    function processImportLibur(rows, inputElement) {
+      const clean = v => v == null ? '' : String(v).trim();
+      const existing = holidays();
+      const existingDates = new Set(existing.map(x => x.date));
+      const batchDates = new Set();
+      const valid = [];
+      let skipped = 0, invalid = 0;
+      rows.forEach(row => {
+        const tanggal = normalizeHolidayDate(row['Tanggal']);
+        const keterangan = clean(row['Keterangan']);
+        if (!tanggal || !/^\d{4}-\d{2}-\d{2}$/.test(tanggal) || !keterangan) { invalid++; return; }
+        if (existingDates.has(tanggal) || batchDates.has(tanggal)) { skipped++; return; }
+        batchDates.add(tanggal);
+        valid.push({ id: uid('H'), date: tanggal, description: keterangan });
+      });
+      if (valid.length) {
+        const data = existing.concat(valid).sort((a, b) => a.date.localeCompare(b.date));
+        setData(KEY.holidays, data);
+        renderHolidays(); renderMonthly();
+      }
+      hideLoading(); inputElement.value = '';
+      alertBox(`Import hari libur selesai: ${valid.length} ditambahkan, ${skipped} duplikat, ${invalid} baris tidak valid.`, 'success');
+    }
+
+    function renderHolidays() {
+      const box = document.getElementById('holidayList'); if (!box) return;
+      const data = holidays();
+      box.innerHTML = data.length ? data.map(h => `
+    <div class="flex items-center justify-between py-2 border-b last:border-0 gap-3">
+      <div class="min-w-0"><div class="text-xs font-bold">${formatDate(h.date)}</div><div class="text-[11px] text-slate-500 truncate">${esc(h.description)}</div></div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button onclick="editHoliday('${esc(h.id)}')" class="text-amber-500 hover:text-amber-700 text-xs" title="Edit"><i class="fas fa-edit"></i></button>
+        <button onclick="deleteHoliday('${esc(h.id)}')" class="text-red-500 hover:text-red-700 text-xs" title="Hapus"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`).join('') : `<div class="text-center py-6 text-slate-400 text-xs">Belum ada hari libur.</div>`;
+    }
+    function isWorkday(dateStr) {
+      const d = new Date(dateStr + 'T12:00:00').getDay();
+      return (settings().workdays || [1, 2, 3, 4, 5, 6]).includes(d) && !holidays().some(h => h.date === dateStr);
+    }
+
+    /* =========================================================
+       ATTENDANCE
+       ========================================================= */
+    /* V10 - Absensi Masuk/Pulang terintegrasi:
+       - satu record per karyawan per tanggal
+       - scan pertama mengisi jamMasuk
+       - scan mode pulang mengisi jamPulang
+       - tidak boleh pulang sebelum masuk
+       - tidak boleh double masuk / double pulang
+    */
+    function getAttendance(id, date = today()) { return attendance().find(x => x.idKaryawan === id && x.tanggal === date) }
+    function saveAttendanceRecord(obj) {
+      let data = attendance(), idx = data.findIndex(x => x.idKaryawan === obj.idKaryawan && x.tanggal === obj.tanggal);
+      if (idx >= 0) data[idx] = { ...data[idx], ...obj }; else data.push(obj);
+      setData(KEY.attendance, data);
+    }
+    function determineStatus(emp, time) {
+      const s = shifts().find(x => x.id === emp.shift);
+      if (!s) return 'Hadir';
+      return time > s.masuk ? 'Terlambat' : 'Hadir';
+    }
+    function selfCheckIn() {
+      if (!currentUser || currentUser.role !== 'Karyawan') return;
+      const e = employees().find(x => x.id === currentUser.id); if (!e) return;
+      if (!isWorkday(today())) return alertBox('Hari ini bukan hari kerja / termasuk hari libur.', 'warning');
+      let a = getAttendance(e.id);
+      if (a?.jamMasuk) return alertBox('Anda sudah melakukan absen masuk.', 'info');
+      const t = nowTime(), status = determineStatus(e, t);
+      saveAttendanceRecord({ idKaryawan: e.id, tanggal: today(), jamMasuk: t, jamPulang: a?.jamPulang || '', status, keterangan: '' });
+      renderMyAttendance(); renderMyDashboard(); renderAdminDashboard(); renderMonitoring();
+      alertBox('Absen masuk berhasil: ' + t, 'success');
+    }
+    function selfCheckOut() {
+      if (!currentUser || currentUser.role !== 'Karyawan') return;
+      let a = getAttendance(currentUser.id);
+      if (!a?.jamMasuk) return alertBox('Anda belum melakukan absen masuk.', 'warning');
+      if (a.jamPulang) return alertBox('Anda sudah melakukan absen pulang.', 'info');
+      a.jamPulang = nowTime(); saveAttendanceRecord(a); renderMyAttendance(); renderMyDashboard(); renderAdminDashboard(); renderMonitoring();
+      alertBox('Absen pulang berhasil: ' + a.jamPulang, 'success');
+    }
+    function renderMyAttendance() {
+      if (!currentUser || currentUser.role !== 'Karyawan') return;
+      const a = statusTodayFor(currentUser.id);
+      document.getElementById('attendanceGreeting').textContent = 'Halo, ' + currentUser.nama;
+      document.getElementById('attendanceInfo').textContent = `${today()} • ${a.status} • Masuk ${a.jamMasuk || '-'} • Pulang ${a.jamPulang || '-'}`;
+      document.getElementById('btnCheckIn').disabled = !!a.jamMasuk;
+      document.getElementById('btnCheckOut').disabled = !a.jamMasuk || !!a.jamPulang;
+      document.getElementById('btnCheckIn').classList.toggle('opacity-50', !!a.jamMasuk);
+      document.getElementById('btnCheckOut').classList.toggle('opacity-50', !a.jamMasuk || !!a.jamPulang);
+      const hist = attendance().filter(x => x.idKaryawan === currentUser.id).sort((a, b) => b.tanggal.localeCompare(a.tanggal)).slice(0, 10);
+      document.getElementById('myHistory').innerHTML = hist.length ? hist.map(a => `
+    <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50">
+      <div><div class="text-xs font-bold">${formatDate(a.tanggal)}</div><div class="text-[10px] text-slate-500">Masuk ${a.jamMasuk || '-'} • Pulang ${a.jamPulang || '-'}</div></div>
+      ${statusBadge(a.status)}
+    </div>`).join('') : `<div class="text-center py-6 text-slate-400 text-xs">Belum ada riwayat.</div>`;
+    }
+
+    /* Admin manual attendance: click a monitoring row isn't provided, so add a simple modal prompt through action if needed. */
+    function setEmployeeStatus(id, status, dateStr) {
+      if (currentUser?.role !== 'admin') {
+        alertBox('Hanya Supervisor / Admin yang dapat mengubah status absensi.', 'warning');
+        return;
+      }
+      const e = employees().find(x => x.id === id); if (!e) return;
+      const date = dateStr || document.getElementById('monDate')?.value || today();
+      const existing = getAttendance(id, date);
+      const obj = { idKaryawan: id, tanggal: date, jamMasuk: existing?.jamMasuk || '', jamPulang: existing?.jamPulang || '', status, keterangan: existing?.keterangan || 'Diinput admin' };
+      if (status === 'Hadir' && !obj.jamMasuk) obj.jamMasuk = nowTime();
+      if (status === 'Belum Absen') {
+        const data = attendance().filter(a => !(a.idKaryawan === id && a.tanggal === date));
+        setData(KEY.attendance, data);
+      } else {
+        saveAttendanceRecord(obj);
+      }
+      renderMonitoring(); renderAdminDashboard(); renderMonthly(); renderDetailedRecap(); alertBox('Status ' + e.nama + ' untuk ' + formatDate(date) + ' diperbarui.', 'success');
+    }
+
+    /* =========================================================
+       MONITORING
+       ========================================================= */
+    function populateShiftSelects() {
+      const ss = shifts();
+      ['monShift', 'rekapShift'].forEach(id => {
+        const el = document.getElementById(id); if (!el) return;
+        const old = el.value;
+        el.innerHTML = '<option value="">Semua Shift</option>' + ss.map(s => `<option value="${s.id}">${esc(s.nama)}</option>`).join('');
+        if (ss.some(s => s.id === old)) el.value = old;
+      });
+      const empShift = document.getElementById('empShift');
+      if (empShift) { const old = empShift.value; empShift.innerHTML = '<option value="">Tanpa Shift</option>' + ss.map(s => `<option value="${s.id}">${esc(s.nama)}</option>`).join(''); if (ss.some(s => s.id === old) || old === '') empShift.value = old; }
+      const qr = document.getElementById('qrEmployee');
+      if (qr) { const old = qr.value; qr.innerHTML = employees().map(e => `<option value="${e.id}">${esc(e.id)} - ${esc(e.nama)}</option>`).join(''); if (employees().some(e => e.id === old)) qr.value = old; }
+    }
+    function initMonitoring() {
+      const d = document.getElementById('monDate'); if (d && !d.value) d.value = today();
+      populateShiftSelects(); renderMonitoring();
+    }
+    function renderMonitoring() {
+      const date = document.getElementById('monDate')?.value || today();
+      const status = document.getElementById('monStatus')?.value || '';
+      const shift = document.getElementById('monShift')?.value || '';
+      const q = (document.getElementById('monSearch')?.value || '').toLowerCase().trim();
+      const tbody = document.getElementById('monitoringTable'); if (!tbody) return;
+      const dateLabel = document.getElementById('monitoringDate');
+      if (dateLabel) dateLabel.textContent = 'Data absensi • ' + formatDate(date);
+
+      const state = tableState.monitoring;
+      handleTableSearch('monitoring', q);
+      handleTableShiftFilter('monitoring', shift);
+      handleTableStatusFilter('monitoring', status);
+
+      const as = attendance();
+      const rows = employees().map(e => {
+        const a = as.find(x => x.idKaryawan === e.id && x.tanggal === date);
+        return { ...e, a: a || { status: 'Belum Absen', jamMasuk: '', jamPulang: '', keterangan: '' } };
+      }).filter(x =>
+        (!state.statusFilter || x.a.status === state.statusFilter) &&
+        (!state.shiftFilter || x.shift === state.shiftFilter) &&
+        (x.id + ' ' + x.nama + ' ' + x.jabatan).toLowerCase().includes(state.search)
+      );
+
+      state.fullData = rows;
+      state.filtered = rows;
+
+      const totalPages = Math.max(1, Math.ceil(rows.length / state.limit));
+      state.page = Math.min(state.page, totalPages);
+      const start = (state.page - 1) * state.limit;
+      const pageRows = rows.slice(start, start + state.limit);
+
+      tbody.innerHTML = pageRows.length ? pageRows.map((r, i) => `
+    <tr class="border-t border-slate-100">
+      <td class="p-3 text-center">${start + i + 1}</td>
+      <td class="p-3 font-semibold">${esc(r.nama)}<div class="text-[10px] text-slate-400">${esc(r.jabatan)}</div></td>
+      <td class="p-3 text-center font-mono">${esc(r.id)}</td>
+      <td class="p-3 text-center">${esc(shifts().find(s => s.id === r.shift)?.nama || '-')}</td>
+      <td class="p-3 text-center">${r.a.jamMasuk || '-'}</td>
+      <td class="p-3 text-center">${r.a.jamPulang || '-'}</td>
+      <td class="p-3 text-center">${statusBadge(r.a.status)}</td>
+      <td class="p-3">${esc(r.a.keterangan || '-')}
+        <button onclick="openStatusMenu('${r.id}','${date}')" class="ml-2 text-[10px] text-indigo-600 font-bold">Ubah Status</button>
+      </td>
+    </tr>`).join('') : `<tr><td colspan="8" class="p-10 text-center text-slate-400">Tidak ada data.</td></tr>`;
+
+      renderTablePagination('monitoring', 'monitoringPagination');
+    }
+    function exportMonitoring() {
+      const date = document.getElementById('monDate')?.value || today();
+      const data = employees().map(e => { const a = getAttendance(e.id, date) || { status: 'Belum Absen' }; return { Tanggal: date, ID: e.id, Nama: e.nama, Jabatan: e.jabatan, Shift: shifts().find(s => s.id === e.shift)?.nama || '', Jam_Masuk: a.jamMasuk || '', Jam_Pulang: a.jamPulang || '', Status: a.status, Keterangan: a.keterangan || '' } });
+      downloadExcel(data, 'Monitoring_Absensi_' + date);
+    }
+
+    /* =========================================================
+       MONTHLY RECAP
+       ========================================================= */
+    function initMonthly() {
+      const m = document.getElementById('rekapBulan'), y = document.getElementById('rekapTahun');
+      if (!m || !y) return;
+      if (!m.options.length) { ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'].forEach((x, i) => m.add(new Option(x, i))) }
+      const year = new Date().getFullYear();
+      if (!y.options.length) for (let i = year - 4; i <= year + 1; i++)y.add(new Option(i, i));
+      m.value = new Date().getMonth(); y.value = year;
+      populateShiftSelects();
+      renderMonthly();
+    }
+    function monthlyDayInfo(year, month, day) {
+      const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const holiday = holidays().find(h => h.date === date);
+      return { date, isHoliday: !!holiday, holidayName: holiday?.description || 'Hari Libur', workday: isWorkday(date) };
+    }
+    function monthlyCode(record, dayInfo) {
+      if (dayInfo.isHoliday) return 'L';
+      if (!record) return '-';
+      const map = { Hadir: 'H', Terlambat: 'T', Izin: 'I', Sakit: 'S', Alpa: 'A' };
+      return map[record.status] || '-';
+    }
+    function monthlyCellClass(code, isHoliday) {
+      if (isHoliday) return 'bg-red-50 text-red-300';
+      if (code === 'H') return 'bg-emerald-50 text-emerald-700 font-bold';
+      if (code === 'T') return 'bg-yellow-50 text-yellow-700 font-bold';
+      if (code === 'I') return 'bg-blue-50 text-blue-700 font-bold';
+      if (code === 'S') return 'bg-orange-50 text-orange-700 font-bold';
+      if (code === 'A') return 'bg-red-50 text-red-600 font-bold';
+      return 'text-slate-300';
+    }
+    function renderMonthly() {
+      const m = Number(document.getElementById('rekapBulan')?.value ?? new Date().getMonth());
+      const y = Number(document.getElementById('rekapTahun')?.value ?? new Date().getFullYear());
+      const sh = document.getElementById('rekapShift')?.value || '';
+      const search = String(document.getElementById('rekapSearch')?.value || '').toLowerCase().trim();
+      const tbody = document.getElementById('monthlyTable'), thead = document.getElementById('monthlyTableHead');
+      if (!tbody || !thead) return;
+      const state = tableState.rekap;
+      state.shiftFilter = sh; state.search = search;
+      const days = daysInMonth(y, m);
+      const dayInfos = Array.from({ length: days }, (_, i) => monthlyDayInfo(y, m, i + 1));
+      const scheduled = dayInfos.filter(x => x.workday).length;
+      const as = attendance(); const shData = shifts();
+      let rows = employees().filter(e => !sh || e.shift === sh).filter(e => !search || e.id.toLowerCase().includes(search) || e.nama.toLowerCase().includes(search));
+      rows = rows.map(e => {
+        const daily = dayInfos.map(info => {
+          const rec = as.find(a => a.idKaryawan === e.id && a.tanggal === info.date);
+          return { date: info.date, code: monthlyCode(rec, info), record: rec, info };
+        });
+        const c = { H: 0, T: 0, I: 0, S: 0, A: 0 };
+        daily.forEach(d => { if (c[d.code] !== undefined) c[d.code]++ });
+        const present = c.H + c.T;
+        const pct = scheduled ? Math.round(present / scheduled * 100) : 0;
+        return { e, daily, c, pct, shift: shData.find(x => x.id === e.shift) };
+      });
+      state.fullData = rows; state.filtered = rows;
+      const totalPages = Math.max(1, Math.ceil(rows.length / state.limit)); state.page = Math.min(state.page, totalPages);
+      const start = (state.page - 1) * state.limit, pageRows = rows.slice(start, start + state.limit);
+      thead.innerHTML = `<tr>
+    <th class="p-2 w-10 text-center sticky left-0 bg-slate-100 z-20 border border-slate-200">No</th>
+    <th class="p-2 w-28 text-left sticky left-10 bg-slate-100 z-20 border border-slate-200">ID</th>
+    <th class="p-2 min-w-[180px] text-left sticky left-[7rem] bg-slate-100 z-20 border border-slate-200">Nama Karyawan</th>
+    <th class="p-2 min-w-[100px] text-center bg-slate-100 border border-slate-200">Shift</th>
+    ${dayInfos.map((d, i) => `<th title="${esc(d.isHoliday ? d.holidayName : d.date)}" class="p-1 w-8 text-center border ${d.isHoliday ? 'bg-red-50 text-red-600 border-red-100' : 'bg-slate-50 text-slate-500 border-slate-200'}">${i + 1}</th>`).join('')}
+    <th class="p-2 w-10 text-center bg-emerald-50 text-emerald-700 border border-slate-200">H</th>
+    <th class="p-2 w-10 text-center bg-yellow-50 text-yellow-700 border border-slate-200">T</th>
+    <th class="p-2 w-10 text-center bg-blue-50 text-blue-700 border border-slate-200">I</th>
+    <th class="p-2 w-10 text-center bg-orange-50 text-orange-700 border border-slate-200">S</th>
+    <th class="p-2 w-10 text-center bg-red-50 text-red-700 border border-slate-200">A</th>
+    <th class="p-2 w-16 text-center bg-indigo-50 text-indigo-700 border border-slate-200">%</th>
+  </tr>`;
+      tbody.innerHTML = pageRows.length ? pageRows.map((r, i) => `<tr class="hover:bg-slate-50">
+    <td class="p-2 text-center sticky left-0 bg-white z-10 border border-slate-100">${start + i + 1}</td>
+    <td class="p-2 font-mono font-bold sticky left-10 bg-white z-10 border border-slate-100">${esc(r.e.id)}</td>
+    <td class="p-2 font-bold text-slate-700 sticky left-[7rem] bg-white z-10 border border-slate-100" title="${esc(r.e.nama)}">${esc(r.e.nama)}</td>
+    <td class="p-2 text-center border border-slate-100">${esc(r.shift?.nama || '-')}</td>
+    ${r.daily.map(d => `<td class="p-1 text-center border ${monthlyCellClass(d.code, d.info.isHoliday)}">${d.code}</td>`).join('')}
+    <td class="p-2 text-center font-bold text-emerald-600 bg-emerald-50/30 border border-slate-100">${r.c.H}</td>
+    <td class="p-2 text-center font-bold text-yellow-600 bg-yellow-50/30 border border-slate-100">${r.c.T}</td>
+    <td class="p-2 text-center font-bold text-blue-600 bg-blue-50/30 border border-slate-100">${r.c.I}</td>
+    <td class="p-2 text-center font-bold text-orange-600 bg-orange-50/30 border border-slate-100">${r.c.S}</td>
+    <td class="p-2 text-center font-bold text-red-600 bg-red-50/30 border border-slate-100">${r.c.A}</td>
+    <td class="p-2 text-center font-extrabold ${r.pct < 70 ? 'text-red-600' : r.pct < 90 ? 'text-yellow-600' : 'text-emerald-600'} bg-indigo-50 border border-slate-100">${r.pct}%</td>
+  </tr>`).join('') : `<tr><td colspan="${days + 10}" class="p-10 text-center text-slate-400">Tidak ada data karyawan yang sesuai filter.</td></tr>`;
+      const totalH = rows.reduce((n, r) => n + r.c.H, 0), totalT = rows.reduce((n, r) => n + r.c.T, 0), totalI = rows.reduce((n, r) => n + r.c.I, 0), totalS = rows.reduce((n, r) => n + r.c.S, 0), totalA = rows.reduce((n, r) => n + r.c.A, 0);
+      const summary = document.getElementById('monthlySummary');
+      if (summary) summary.innerHTML = `${[['Karyawan', rows.length, 'text-slate-700'], ['Hari Kerja', scheduled, 'text-indigo-700'], ['Hadir', totalH, 'text-emerald-600'], ['Terlambat', totalT, 'text-yellow-600'], ['Tidak Hadir', totalI + totalS + totalA, 'text-red-600']].map(x => `<div class="rounded-xl bg-white border border-slate-200 p-3"><div class="text-[10px] uppercase text-slate-400 font-bold">${x[0]}</div><div class="text-xl font-extrabold ${x[2]}">${x[1]}</div></div>`).join('')}`;
+      renderTablePagination('rekap', 'monthlyPagination');
+    }
+    function exportMonthly() {
+      const m = Number(document.getElementById('rekapBulan')?.value || 0), y = Number(document.getElementById('rekapTahun')?.value || new Date().getFullYear());
+      const sh = document.getElementById('rekapShift')?.value || ''; const search = String(document.getElementById('rekapSearch')?.value || '').toLowerCase().trim();
+      const days = daysInMonth(y, m), infos = Array.from({ length: days }, (_, i) => monthlyDayInfo(y, m, i + 1)), as = attendance(), shData = shifts();
+      const rows = employees().filter(e => !sh || e.shift === sh).filter(e => !search || e.id.toLowerCase().includes(search) || e.nama.toLowerCase().includes(search)).map(e => {
+        const out = { ID: e.id, Nama: e.nama, Jabatan: e.jabatan, Shift: shData.find(s => s.id === e.shift)?.nama || '' };
+        let h = 0, t = 0, iz = 0, s = 0, a = 0;
+        infos.forEach((info, i) => { const rec = as.find(x => x.idKaryawan === e.id && x.tanggal === info.date); const code = monthlyCode(rec, info); out[String(i + 1)] = code; if (code === 'H') h++; if (code === 'T') t++; if (code === 'I') iz++; if (code === 'S') s++; if (code === 'A') a++; });
+        const scheduled = infos.filter(x => x.workday).length; out.Hadir = h; out.Terlambat = t; out.Izin = iz; out.Sakit = s; out.Alpa = a; out['Hari Kerja'] = scheduled; out.Persentase = scheduled ? Math.round((h + t) / scheduled * 100) + '%' : '0%'; return out;
+      });
+      downloadExcel(rows, `Rekap_Absensi_Bulanan_${y}_${String(m + 1).padStart(2, '0')}`);
+    }
+
+
+    /* =========================================================
+       SCANNER DETAIL
+       ========================================================= */
+    let detailScanner = null;
+    let scannerMode = 'masuk';
+    let scannerBeepContext = null;
+    let scannerLastDetected = '';
+    let scannerLastDetectedAt = 0;
+
+    function setScannerMode(mode) {
+      if (mode !== 'masuk' && mode !== 'pulang') return;
+      scannerMode = mode;
+      const masuk = document.getElementById('scannerModeMasuk');
+      const pulang = document.getElementById('scannerModePulang');
+      const desc = document.getElementById('scannerModeDescription');
+      const manualBtn = document.querySelector('#manualEmployeeId + button');
+      if (masuk && pulang) {
+        masuk.className = mode === 'masuk'
+          ? 'py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-bold'
+          : 'py-2.5 rounded-lg bg-slate-100 text-slate-500 text-xs font-bold';
+        pulang.className = mode === 'pulang'
+          ? 'py-2.5 rounded-lg bg-indigo-600 text-white text-xs font-bold'
+          : 'py-2.5 rounded-lg bg-slate-100 text-slate-500 text-xs font-bold';
+      }
+      if (desc) desc.textContent = mode === 'masuk'
+        ? 'Scan QR karyawan untuk mencatat absensi masuk. Admin dapat scan karyawan lain, sedangkan karyawan hanya dapat scan QR miliknya sendiri.'
+        : 'Scan QR karyawan untuk mencatat absensi pulang. Karyawan harus sudah memiliki jam masuk sebelum dapat melakukan absen pulang.';
+      if (manualBtn) manualBtn.textContent = mode === 'masuk' ? 'Absen Masuk' : 'Absen Pulang';
+      setScannerLastMode();
+    }
+
+    function setScannerLastMode() {
+      const label = document.querySelector('#scannerLastResult .text-\[10px\]');
+      if (label) label.textContent = 'Hasil Scan Terakhir • ' + (scannerMode === 'masuk' ? 'ABSENSI MASUK' : 'ABSENSI PULANG');
+    }
+
+    function playScannerBeep(type = 'success') {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        if (!scannerBeepContext) scannerBeepContext = new AudioCtx();
+        const ctx = scannerBeepContext;
+        if (ctx.state === 'suspended') ctx.resume().catch(() => { });
+        const tones = type === 'success' ? [880, 1100] : type === 'warning' ? [520] : [300];
+        tones.forEach((freq, i) => {
+          const delay = i * 0.15;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+          gain.gain.setValueAtTime(type === 'error' ? 0.28 : 0.22, ctx.currentTime + delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.18);
+          osc.start(ctx.currentTime + delay);
+          osc.stop(ctx.currentTime + delay + 0.18);
+        });
+      } catch (e) { }
+    }
+
+    function handleScannedEmployee(id) {
+      id = (id || '').trim().toUpperCase();
+      const now = Date.now();
+      if (id && id === scannerLastDetected && now - scannerLastDetectedAt < 1800) return false;
+      if (id) { scannerLastDetected = id; scannerLastDetectedAt = now; }
+      const e = employees().find(x => x.id === id);
+      if (!e) { scannerFeedbackFromResult(id, false, 'ID Karyawan tidak ditemukan.'); alertBox('ID Karyawan tidak ditemukan.', 'error'); return false; }
+
+      if (currentUser?.role === 'Karyawan' && currentUser.id !== id) {
+        scannerFeedbackFromResult(id, false, 'QR milik karyawan lain.'); alertBox('QR milik karyawan lain.', 'warning'); return false;
+      }
+
+      if (!isWorkday(today())) {
+        scannerFeedbackFromResult(id, false, 'Hari ini bukan hari kerja / termasuk hari libur.'); alertBox('Hari ini bukan hari kerja / termasuk hari libur.', 'warning'); return false;
+      }
+
+      const a = getAttendance(id);
+      if (scannerMode === 'pulang') {
+        if (!a?.jamMasuk) {
+          scannerFeedbackFromResult(id, false, e.nama + ' belum melakukan absen masuk hari ini.');
+          alertBox(e.nama + ' belum melakukan absen masuk hari ini.', 'warning');
+          setScannerLastResult(e, 'Belum absen masuk');
+          return false;
+        }
+        if (a.jamPulang) {
+          playScannerBeep('warning');
+          showScannerFeedback('info', 'Sudah tercatat', `${e.nama} (${e.id}) sudah absen pulang ${a.jamPulang}.`);
+          alertBox(e.nama + ' sudah melakukan absen pulang hari ini.', 'info');
+          setScannerLastResult(e, 'Sudah absen pulang ' + a.jamPulang);
+          return false;
+        }
+        a.jamPulang = nowTime();
+        a.keterangan = a.keterangan || 'Scan QR';
+        saveAttendanceRecord(a);
+        setScannerLastResult(e, `Pulang berhasil • ${a.jamPulang}`);
+        scannerFeedbackFromResult(id, true, `Absensi pulang ${a.jamPulang}`);
+        renderScannerHistory(); renderMonitoring(); renderAdminDashboard(); renderMyDashboard();
+        alertBox('Absen pulang ' + e.nama + ' berhasil dicatat.', 'success');
+        return true;
+      }
+
+      if (a?.jamMasuk) {
+        playScannerBeep('warning');
+        showScannerFeedback('info', 'Sudah tercatat', `${e.nama} (${e.id}) sudah absen masuk ${a.jamMasuk}.`);
+        alertBox(e.nama + ' sudah absen masuk hari ini.', 'info');
+        setScannerLastResult(e, 'Sudah absen masuk ' + a.jamMasuk);
+        return false;
+      }
+
+      const t = nowTime();
+      const status = determineStatus(e, t);
+      saveAttendanceRecord({ idKaryawan: id, tanggal: today(), jamMasuk: t, jamPulang: '', status, keterangan: 'Scan QR' });
+      setScannerLastResult(e, `Masuk berhasil • ${t} • ${status}`);
+      scannerFeedbackFromResult(id, true, `Absensi masuk ${t} • ${status}`);
+      renderScannerHistory(); renderMonitoring(); renderAdminDashboard(); renderMyDashboard();
+      alertBox('Absensi masuk ' + e.nama + ' berhasil dicatat.', 'success');
+      return true;
+    }
+
+    function setScannerLastResult(e, text) {
+      const box = document.getElementById('scannerLastText');
+      if (box) box.textContent = `${e.nama} (${e.id}) — ${text}`;
+    }
+
+    function showScannerFeedback(type, title, message, targetId = 'readerDetail') {
+      const box = document.getElementById('scannerFeedback');
+      if (box) {
+        const icons = { ok: 'fa-check-circle', err: 'fa-times-circle', warn: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+        box.className = 'scanner-feedback show ' + (type || 'info');
+        box.innerHTML = `<span class="feedback-icon"><i class="fas ${icons[type] || icons.info}"></i></span><div>${esc(title || '')}</div><div class="font-normal text-[10px] mt-1">${esc(message || '')}</div>`;
+      }
+      const target = document.getElementById(targetId);
+      if (target) {
+        target.classList.remove('scanner-flash-ok', 'scanner-flash-err');
+        if (type === 'ok' || type === 'err') {
+          target.classList.add(type === 'ok' ? 'scanner-flash-ok' : 'scanner-flash-err');
+          setTimeout(() => target.classList.remove('scanner-flash-ok', 'scanner-flash-err'), 700);
+        }
+      }
+    }
+    function clearScannerFeedback() {
+      const box = document.getElementById('scannerFeedback');
+      if (box) { box.className = 'scanner-feedback'; box.innerHTML = ''; }
+    }
+    function setScannerCameraStatus(text, tone = '') {
+      const el = document.getElementById('scannerCameraStatus');
+      if (el) { el.textContent = text || ''; el.className = 'scanner-camera-status ' + tone; }
+    }
+
+    // V10.1: feedback scanner dibuat langsung di halaman, tanpa popup/postMessage.
+    function scannerFeedbackFromResult(id, success, message, tone) {
+      const e = employees().find(x => x.id === String(id).trim().toUpperCase());
+      if (success && e) {
+        playScannerBeep('success');
+        showScannerFeedback('ok', 'Scan berhasil', `${e.nama} (${e.id}) • ${message}`);
+      } else {
+        playScannerBeep(tone === 'warning' ? 'warning' : 'error');
+        showScannerFeedback(tone === 'warning' ? 'warn' : 'err', tone === 'warning' ? 'Perhatian' : 'Scan gagal', message || 'QR tidak dapat diproses.');
+      }
+    }
+
+    // V10: reset pilihan mode ke Absensi Masuk saat membuka ulang sesi scanner.
+    function resetScannerMode() {
+      scannerMode = 'masuk';
+      setScannerMode('masuk');
+    }
+
+    let scannerCameraFacing = 'environment';
+    // Mencegah satu QR yang masih berada di depan kamera diproses berulang-ulang.
+    // Kamera tetap hidup agar scanner bisa dipakai untuk antrean karyawan berikutnya.
+    const scannerScanCooldown = 2500;
+    const scannerLastScanById = new Map();
+    let scannerLastInvalidScanAt = 0;
+
+    function canProcessScannerId(id) {
+      const now = Date.now();
+      const last = scannerLastScanById.get(id) || 0;
+      if (now - last < scannerScanCooldown) return false;
+      scannerLastScanById.set(id, now);
+      return true;
+    }
+
+    function setScannerReaderState(state) {
+      const reader = document.getElementById('readerDetail');
+      if (!reader) return;
+      reader.classList.remove('scanning', 'scan-error');
+      if (state === 'scanning') reader.classList.add('scanning');
+      if (state === 'error') reader.classList.add('scan-error');
+    }
+
+    function startDetailScanner() {
+      if (detailScanner) return;
+      clearScannerFeedback();
+      setScannerReaderState('scanning');
+      setScannerCameraStatus('Mengaktifkan kamera...');
+      detailScanner = new Html5Qrcode('readerDetail');
+      detailScanner.start({ facingMode: scannerCameraFacing }, { fps: 10, qrbox: 220 }, decoded => {
+        const raw = (decoded || '').trim();
+        if (raw.startsWith('SPBU-ABSEN:')) {
+          const id = raw.replace('SPBU-ABSEN:', '').trim().toUpperCase();
+          if (!id || !canProcessScannerId(id)) return;
+          setScannerCameraStatus('QR terdeteksi • memproses absensi...');
+          const ok = handleScannedEmployee(id);
+          // Jangan hentikan kamera. Setelah hasil diproses, scanner kembali siap
+          // menerima QR berikutnya tanpa perlu klik Mulai Scan lagi.
+          setScannerReaderState(ok ? 'scanning' : 'scanning');
+          setTimeout(() => {
+            if (detailScanner) setScannerCameraStatus('Kamera aktif • siap scan berikutnya...');
+          }, 450);
+        } else {
+          const now = Date.now();
+          if (now - scannerLastInvalidScanAt < scannerScanCooldown) return;
+          scannerLastInvalidScanAt = now;
+          setScannerReaderState('error');
+          playScannerBeep('warning');
+          showScannerFeedback('warn', 'QR tidak valid', 'QR bukan QR absensi SPBU.');
+          setScannerCameraStatus('QR tidak valid. Arahkan kamera ke QR absensi SPBU.', 'warn');
+          alertBox('QR bukan QR absensi SPBU.', 'warning');
+          setTimeout(() => { if (detailScanner) { setScannerReaderState('scanning'); setScannerCameraStatus('Kamera aktif • siap scan berikutnya...'); } }, 700);
+        }
+      }).then(() => {
+        setScannerReaderState('scanning');
+        setScannerCameraStatus('Kamera aktif • siap scan berikutnya...');
+      }).catch(() => {
+        detailScanner = null;
+        setScannerReaderState('error');
+        setScannerCameraStatus('Kamera gagal dibuka. Periksa izin kamera.', 'err');
+        playScannerBeep('error');
+        showScannerFeedback('err', 'Kamera gagal dibuka', 'Pastikan izin kamera diberikan pada browser.');
+        alertBox('Kamera tidak dapat dibuka. Pastikan izin kamera diberikan.', 'error');
+      });
+    }
+
+    async function switchScannerCamera() {
+      scannerCameraFacing = scannerCameraFacing === 'environment' ? 'user' : 'environment';
+      const label = scannerCameraFacing === 'environment' ? 'Kamera belakang dipilih.' : 'Kamera depan dipilih.';
+      if (detailScanner) {
+        await stopDetailScanner();
+        setTimeout(() => startDetailScanner(), 150);
+      } else {
+        setScannerCameraStatus(label);
+      }
+    }
+
+    function stopDetailScanner() {
+      if (detailScanner) {
+        const activeScanner = detailScanner;
+        return activeScanner.stop().catch(() => { }).finally(() => {
+          if (detailScanner === activeScanner) detailScanner = null;
+          setScannerReaderState('idle');
+          setScannerCameraStatus('Kamera dihentikan.');
+          const r = document.getElementById('readerDetail');
+          if (r) r.innerHTML = '<div class="scanner-reader-overlay" aria-hidden="true"><div class="scanner-aim-box"><span class="scanner-corner tl"></span><span class="scanner-corner tr"></span><span class="scanner-corner bl"></span><span class="scanner-corner br"></span><span class="scanner-scanline"></span></div></div><div class="text-center text-slate-400 text-xs p-6 scanner-placeholder"><i class="fas fa-qrcode text-4xl mb-3"></i><div>Kamera belum dijalankan.</div></div>';
+        });
+      }
+      setScannerReaderState('idle');
+      setScannerCameraStatus('Kamera belum dijalankan.');
+      return Promise.resolve();
+    }
+
+    function submitManualEmployeeId() {
+      const id = document.getElementById('manualEmployeeId')?.value.trim().toUpperCase();
+      if (!id) return alertBox('Masukkan ID Karyawan.', 'warning');
+      if (handleScannedEmployee(id)) document.getElementById('manualEmployeeId').value = '';
+    }
+
+    /* =========================================================
+       KARTU KARYAWAN
+       ========================================================= */
+    function initEmployeeCard() {
+      const sel = document.getElementById('cardEmployee'); if (!sel) return;
+      const list = currentUser?.role === 'Karyawan' ? employees().filter(e => e.id === currentUser.id) : employees();
+      const old = sel.value;
+      sel.innerHTML = list.map(e => `<option value="${esc(e.id)}">${esc(e.id)} - ${esc(e.nama)}</option>`).join('');
+      if (list.some(e => e.id === old)) sel.value = old;
+      if (currentUser?.role === 'Karyawan') sel.disabled = true;
+      populateBulkCardShift();
+      renderEmployeeCard();
+      updateBulkCardInfo();
+    }
+
+    function renderEmployeeCard() {
+      const id = document.getElementById('cardEmployee')?.value; if (!id) return;
+      const e = employees().find(x => x.id === id); if (!e) return;
+      const s = shifts().find(x => x.id === e.shift);
+      document.getElementById('cardNama').textContent = e.nama;
+      document.getElementById('cardId').textContent = e.id;
+      document.getElementById('cardJabatan').textContent = e.jabatan || '-';
+      document.getElementById('cardShift').textContent = `${s?.nama || '-'} • ${s?.masuk || '-'} - ${s?.pulang || '-'}`;
+      const box = document.getElementById('cardQr'); box.innerHTML = '';
+      new QRCode(box, { text: 'SPBU-ABSEN:' + e.id, width: 150, height: 150, colorDark: '#111827', colorLight: '#ffffff' });
+    }
+
+    function printEmployeeCard() {
+      const el = document.getElementById('employeeCardPrint'); if (!el) return;
+      window.print();
+    }
+
+    function populateBulkCardShift() {
+      const sel = document.getElementById('bulkCardShift'); if (!sel) return;
+      const old = sel.value;
+      const list = shifts();
+      sel.innerHTML = '<option value="">Semua Shift</option>' + list.map(s => `<option value="${esc(s.id)}">${esc(s.nama)}</option>`).join('');
+      if (list.some(s => s.id === old)) sel.value = old;
+      if (currentUser?.role !== 'admin') {
+        sel.value = '';
+        sel.disabled = true;
+      } else sel.disabled = false;
+    }
+
+    function getBulkCardEmployees() {
+      const filter = document.getElementById('bulkCardShift')?.value || '';
+      return employees().filter(e => !filter || e.shift === filter);
+    }
+
+    function updateBulkCardInfo() {
+      const box = document.getElementById('bulkCardInfo'); if (!box) return;
+      const list = getBulkCardEmployees();
+      const filter = document.getElementById('bulkCardShift')?.value || '';
+      const shiftName = shifts().find(s => s.id === filter)?.nama;
+      box.textContent = filter
+        ? `${list.length} kartu karyawan • ${shiftName || filter}`
+        : `${list.length} kartu karyawan • Semua Shift`;
+    }
+
+    function waitMs(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    function qrElementToDataUrl(container) {
+      const canvas = container?.querySelector('canvas');
+      if (canvas) { try { return canvas.toDataURL('image/png'); } catch (e) { } }
+      const img = container?.querySelector('img');
+      if (img?.src) return img.src;
+      return '';
+    }
+
+    function loadImageDataUrl(src) {
+      return new Promise(resolve => {
+        if (!src) return resolve('');
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
+          } catch (e) { resolve(''); }
+        };
+        img.onerror = () => resolve('');
+        img.src = src;
+      });
+    }
+
+    async function bulkPrintEmployeeCards() {
+      if (currentUser?.role !== 'admin') return alertBox('Hanya Supervisor / Admin yang dapat mencetak semua kartu karyawan.', 'warning');
+      if (!window.jspdf?.jsPDF) return alertBox('Library PDF belum tersedia. Periksa koneksi internet lalu coba lagi.', 'error');
+      const list = getBulkCardEmployees();
+      if (!list.length) return alertBox('Tidak ada karyawan yang sesuai dengan filter.', 'warning');
+
+      const filter = document.getElementById('bulkCardShift')?.value || '';
+      const shiftName = shifts().find(s => s.id === filter)?.nama || 'Semua Shift';
+      const result = await Swal.fire({
+        title: 'Cetak Semua Kartu?',
+        html: `<div class="text-sm text-slate-600 text-left">${list.length} kartu karyawan akan dibuat dalam PDF A4.<br>Filter: <b>${esc(shiftName)}</b><br>Format: 8 kartu per halaman.</div>`,
+        icon: 'question', showCancelButton: true, confirmButtonText: 'Buat PDF', cancelButtonText: 'Batal', confirmButtonColor: '#059669'
+      });
+      if (!result.isConfirmed) return;
+
+      showLoading();
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const logoEl = document.querySelector('#employeeCardPrint img');
+        const logoData = await loadImageDataUrl(logoEl?.src || '');
+
+        const pageW = 210, pageH = 297;
+        const marginX = 9, marginY = 9, gapX = 5, gapY = 5;
+        const cardW = (pageW - (marginX * 2) - gapX) / 2;
+        const cardH = (pageH - (marginY * 2) - (gapY * 3)) / 4;
+
+        const addText = (text, x, y, maxWidth, fontSize = 7, bold = false) => {
+          doc.setFont('helvetica', bold ? 'bold' : 'normal');
+          doc.setFontSize(fontSize);
+          const safe = String(text ?? '-');
+          const lines = doc.splitTextToSize(safe, maxWidth);
+          doc.text(lines.slice(0, 2), x, y);
+          return lines.slice(0, 2).length;
+        };
+
+        for (let i = 0; i < list.length; i++) {
+          if (i > 0 && i % 8 === 0) doc.addPage();
+          const slot = i % 8;
+          const col = slot % 2, row = Math.floor(slot / 2);
+          const x = marginX + col * (cardW + gapX), y = marginY + row * (cardH + gapY);
+          const e = list[i], sh = shifts().find(v => v.id === e.shift);
+
+          doc.setDrawColor(226, 232, 240); doc.setFillColor(255, 255, 255); doc.roundedRect(x, y, cardW, cardH, 3, 3, 'FD');
+          doc.setFillColor(55, 48, 163); doc.roundedRect(x, y, cardW, 17, 3, 3, 'F');
+          doc.rect(x, y + 5, cardW, 12, 'F');
+
+          if (logoData) {
+            try { doc.addImage(logoData, 'PNG', x + cardW - 15, y + 3, 10, 10); } catch (e) { }
+          }
+          doc.setTextColor(224, 231, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(5.2);
+          doc.text('SPBU KOTOBARU CAHAYA UTAMA', x + 4, y + 6.5);
+          doc.setFontSize(6.8); doc.setTextColor(255, 255, 255); doc.text('KARTU KARYAWAN', x + 4, y + 12);
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(4.5); doc.text('No. SPBU 13.262.515', x + 4, y + 15.3);
+
+          const qrWrap = document.createElement('div');
+          qrWrap.style.position = 'fixed'; qrWrap.style.left = '-10000px'; qrWrap.style.top = '-10000px'; qrWrap.style.background = '#fff';
+          document.body.appendChild(qrWrap);
+          new QRCode(qrWrap, { text: 'SPBU-ABSEN:' + e.id, width: 140, height: 140, colorDark: '#111827', colorLight: '#ffffff' });
+          await waitMs(15);
+          const qrData = qrElementToDataUrl(qrWrap);
+          if (qrData) { try { doc.addImage(qrData, 'PNG', x + 4, y + 22, 31, 31); } catch (err) { } }
+          qrWrap.remove();
+
+          const tx = x + 40, tw = cardW - 44;
+          doc.setTextColor(17, 24, 39);
+          let yy = y + 25;
+          let n = addText(e.nama, tx, yy, tw, 9, true); yy += n * 4.2;
+          doc.setTextColor(79, 70, 229); doc.setFont('courier', 'bold'); doc.setFontSize(7); doc.text(e.id, tx, yy + 2);
+          doc.setTextColor(100, 116, 139); doc.setFont('helvetica', 'normal'); doc.setFontSize(5.8);
+          doc.text(String(e.jabatan || 'Operator'), tx, yy + 8);
+          doc.setFont('helvetica', 'bold'); doc.text(`${sh?.nama || '-'} • ${sh?.masuk || '-'}-${sh?.pulang || '-'}`, tx, yy + 14);
+
+          doc.setDrawColor(226, 232, 240); doc.line(x + 4, y + cardH - 12, x + cardW - 4, y + cardH - 12);
+          doc.setTextColor(148, 163, 184); doc.setFont('helvetica', 'normal'); doc.setFontSize(4.5);
+          doc.text('Scan QR untuk absensi SPBU', x + cardW / 2, y + cardH - 5.5, { align: 'center' });
+        }
+
+        const fileName = filter ? `kartu-karyawan-${filter}.pdf` : 'kartu-karyawan-semua.pdf';
+        doc.save(fileName);
+        alertBox(`${list.length} kartu karyawan berhasil dibuat dalam PDF.`, 'success');
+      } catch (err) {
+        console.error(err);
+        alertBox('Gagal membuat PDF kartu karyawan: ' + (err?.message || err), 'error');
+      } finally { hideLoading(); }
+    }
+
+    /* =========================================================
+       QR
+       ========================================================= */
+    function populateQR() { populateShiftSelects(); generateQR() }
+    function generateQR() {
+      const id = document.getElementById('qrEmployee')?.value; if (!id) return;
+      const box = document.getElementById('qrCode'); box.innerHTML = '';
+      new QRCode(box, { text: 'SPBU-ABSEN:' + id, width: 190, height: 190, colorDark: '#111827', colorLight: '#ffffff' });
+    }
+    function showEmployeeQR(id) {
+      showView('view-qr');
+      setTimeout(() => { document.getElementById('qrEmployee').value = id; generateQR() }, 50);
+    }
+    function startScanner() {
+      if (scanner || isScanning) return;
+      scanner = new Html5Qrcode('reader');
+      html5QrCode = scanner;
+      isScanning = true;
+      scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: 220 }, decoded => {
+        const raw = (decoded || '').trim();
+        if (raw.startsWith('SPBU-ABSEN:')) {
+          const id = raw.replace('SPBU-ABSEN:', '').trim().toUpperCase();
+          if (!id || !canProcessScannerId(id)) return;
+          // Scanner legacy juga memakai alur absensi yang sama dan tetap hidup
+          // untuk scan karyawan berikutnya.
+          handleScannedEmployee(id);
+        } else {
+          alertBox('QR bukan QR absensi SPBU.', 'warning');
+        }
+      }).catch(err => {
+        scanner = null;
+        html5QrCode = null;
+        isScanning = false;
+        alertBox('Kamera tidak dapat dibuka. Pastikan izin kamera diberikan.', 'error');
+      });
+    }
+    function stopScanner() {
+      if (scanner) {
+        scanner.stop().catch(() => { }).finally(() => {
+          scanner = null;
+          html5QrCode = null;
+          isScanning = false;
+          const r = document.getElementById('reader');
+          if (r) r.innerHTML = '';
+        });
+      } else {
+        isScanning = false;
+        html5QrCode = null;
+      }
+    }
+
+
+    /* =========================================================
+       REKAP DETAIL
+       ========================================================= */
+    let detailedRecapRows = [];
+    let detailedRecapPage = 1;
+    const detailedRecapLimit = 10;
+
+    function initDetailedRecap() {
+      const s = document.getElementById('rekapStart'), e = document.getElementById('rekapEnd');
+      if (s && !s.value) s.value = today();
+      if (e && !e.value) e.value = today();
+
+      const sel = document.getElementById('rekapDetailShift');
+      if (sel) {
+        const old = sel.value;
+        sel.innerHTML = '<option value="">Semua Shift</option>' + shifts().map(x => `<option value="${esc(x.id)}">${esc(x.nama)}</option>`).join('');
+        if (shifts().some(x => x.id === old)) sel.value = old;
+      }
+      applyDetailedRecap();
+    }
+
+    function buildDetailedRecapRows() {
+      let start = document.getElementById('rekapStart')?.value || today();
+      let end = document.getElementById('rekapEnd')?.value || start;
+      if (start > end) [start, end] = [end, start];
+
+      const shift = document.getElementById('rekapDetailShift')?.value || '';
+      const status = document.getElementById('rekapDetailStatus')?.value || '';
+      const q = (document.getElementById('rekapDetailSearch')?.value || '').toLowerCase().trim();
+
+      const result = [];
+      const emp = employees();
+      const all = attendance();
+
+      // Buat baris hanya untuk catatan absensi yang memang ada.
+      // Jika ingin melihat "Belum Absen", baris dibuat untuk setiap karyawan pada hari kerja.
+      for (const a of all) {
+        if (a.tanggal < start || a.tanggal > end) continue;
+        const e = emp.find(x => x.id === a.idKaryawan); if (!e) continue;
+        if (shift && e.shift !== shift) continue;
+        if (q && !(`${e.id} ${e.nama} ${e.jabatan}`).toLowerCase().includes(q)) continue;
+        const st = a.status || 'Belum Absen';
+        if (status && st !== status) continue;
+        const sh = shifts().find(x => x.id === e.shift);
+        result.push({
+          tanggal: a.tanggal, id: e.id, nama: e.nama, shift: sh?.nama || '-',
+          jamMasuk: a.jamMasuk || '-', jamPulang: a.jamPulang || '-',
+          keterangan: timeNote(a, e, sh), status: st
+        });
+      }
+
+      // Untuk filter "Belum Absen", tampilkan karyawan yang belum punya catatan
+      // pada hari kerja dalam rentang yang dipilih.
+      if (status === 'Belum Absen') {
+        const d0 = new Date(start + 'T12:00:00'), d1 = new Date(end + 'T12:00:00');
+        for (let d = new Date(d0); d <= d1; d.setDate(d.getDate() + 1)) {
+          const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          if (!isWorkday(ds)) continue;
+          for (const e of emp) {
+            const sh = shifts().find(x => x.id === e.shift);
+            if (shift && e.shift !== shift) continue;
+            if (q && !(`${e.id} ${e.nama} ${e.jabatan}`).toLowerCase().includes(q)) continue;
+            if (!all.some(a => a.tanggal === ds && a.idKaryawan === e.id)) {
+              result.push({ tanggal: ds, id: e.id, nama: e.nama, shift: sh?.nama || '-', jamMasuk: '-', jamPulang: '-', keterangan: 'Belum melakukan absensi', status: 'Belum Absen' });
+            }
+          }
+        }
+      }
+
+      return result.sort((a, b) => b.tanggal.localeCompare(a.tanggal) || a.nama.localeCompare(b.nama));
+    }
+
+    function timeNote(a, e, s) {
+      if (!a) return '-';
+      if (a.status === 'Terlambat') return `Terlambat • Jadwal ${s?.masuk || '-'}`;
+      if (a.status === 'Hadir') return `Tepat waktu • Jadwal ${s?.masuk || '-'}`;
+      return a.keterangan || '-';
+    }
+
+    function applyDetailedRecap() {
+      detailedRecapRows = buildDetailedRecapRows();
+      detailedRecapPage = 1;
+      renderDetailedRecap();
+    }
+
+    function resetDetailedRecap() {
+      const t = today();
+      document.getElementById('rekapStart').value = t;
+      document.getElementById('rekapEnd').value = t;
+      document.getElementById('rekapDetailShift').value = '';
+      document.getElementById('rekapDetailStatus').value = '';
+      document.getElementById('rekapDetailSearch').value = '';
+      applyDetailedRecap();
+    }
+
+    function renderDetailedRecap() {
+      const tbody = document.getElementById('detailedRecapTable'); if (!tbody) return;
+      const rows = detailedRecapRows;
+      const start = (detailedRecapPage - 1) * detailedRecapLimit;
+      const pageRows = rows.slice(start, start + detailedRecapLimit);
+
+      const count = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, Alpa: 0 };
+      rows.forEach(r => { if (count[r.status] !== undefined) count[r.status]++ });
+      document.getElementById('rekapDetailTotal').textContent = rows.length;
+      document.getElementById('rekapDetailHadir').textContent = count.Hadir;
+      document.getElementById('rekapDetailTerlambat').textContent = count.Terlambat;
+      document.getElementById('rekapDetailIzinSakit').textContent = count.Izin + count.Sakit;
+      document.getElementById('rekapDetailAlpa').textContent = count.Alpa;
+
+      tbody.innerHTML = pageRows.length ? pageRows.map((r, i) => `
+    <tr class="border-t border-slate-100 hover:bg-slate-50">
+      <td class="p-3 text-center">${start + i + 1}</td>
+      <td class="p-3">${formatDate(r.tanggal)}</td>
+      <td class="p-3 font-semibold">${esc(r.nama)}</td>
+      <td class="p-3 font-mono">${esc(r.id)}</td>
+      <td class="p-3">${esc(r.shift)}</td>
+      <td class="p-3 text-center">${esc(r.jamMasuk)}</td>
+      <td class="p-3 text-center">${esc(r.jamPulang)}</td>
+      <td class="p-3">${esc(r.keterangan)}</td>
+      <td class="p-3 text-center">${statusBadge(r.status)}</td>
+    </tr>`).join('')
+        : `<tr><td colspan="9" class="p-10 text-center text-slate-400">Tidak ada data pada filter yang dipilih.</td></tr>`;
+
+      const totalPages = Math.max(1, Math.ceil(rows.length / detailedRecapLimit));
+      if (detailedRecapPage > totalPages) detailedRecapPage = totalPages;
+      const pg = document.getElementById('detailedRecapPagination');
+      pg.innerHTML = '';
+      if (totalPages > 1) {
+        for (let p = 1; p <= totalPages; p++) {
+          const b = document.createElement('button');
+          b.className = 'pagination-btn' + (p === detailedRecapPage ? ' active' : '');
+          b.textContent = p; b.onclick = () => { detailedRecapPage = p; renderDetailedRecap() };
+          pg.appendChild(b);
+        }
+      }
+      document.getElementById('detailedRecapInfo').textContent =
+        rows.length ? `Menampilkan ${start + 1}-${Math.min(start + detailedRecapLimit, rows.length)} dari ${rows.length} data` : 'Tidak ada data';
+    }
+
+    function exportDetailedRecap() {
+      const rows = buildDetailedRecapRows();
+      const data = rows.map((r, i) => ({
+        No: i + 1, Tanggal: r.tanggal, ID_Karyawan: r.id, Nama_Karyawan: r.nama, Shift: r.shift,
+        Jam_Masuk: r.jamMasuk, Jam_Pulang: r.jamPulang, Keterangan_Waktu: r.keterangan, Status: r.status
+      }));
+      const start = document.getElementById('rekapStart')?.value || today();
+      const end = document.getElementById('rekapEnd')?.value || start;
+      downloadExcel(data, `Laporan_Kehadiran_${start}_${end}`);
+    }
+
+    /* =========================================================
+       STATUS ABSENSI ADMIN
+       ========================================================= */
+
+    function openStatusMenu(id, dateStr) {
+      const date = dateStr || document.getElementById('monDate')?.value || today();
+      const options = ['Hadir', 'Terlambat', 'Izin', 'Sakit', 'Alpa', 'Belum Absen'];
+      const buttons = options.map(s => `<button onclick="setEmployeeStatus('${esc(id)}','${s}','${esc(date)}');Swal.close()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-100 text-xs font-semibold">${s}</button>`).join('');
+      Swal.fire({ title: 'Ubah Status Absensi', html: `<div class="text-xs text-slate-500 mb-2">Tanggal: ${esc(formatDate(date))}</div><div class="space-y-1 text-left">${buttons}</div>`, showConfirmButton: false, showCancelButton: true, cancelButtonText: 'Batal' });
+    }
+
+
+    /* =========================================================
+       UTILITIES
+       ========================================================= */
+    function statusBadge(s) {
+      const map = { Hadir: 'bg-emerald-100 text-emerald-700', Terlambat: 'bg-yellow-100 text-yellow-700', Izin: 'bg-blue-100 text-blue-700', Sakit: 'bg-orange-100 text-orange-700', Alpa: 'bg-red-100 text-red-700', 'Belum Absen': 'bg-slate-100 text-slate-600' };
+      return `<span class="badge ${map[s] || map['Belum Absen']}">${esc(s)}</span>`;
+    }
+    function formatDate(s) {
+      if (!s) return '-';
+      return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(s + 'T12:00:00'));
+    }
+    function alertBox(msg, icon = 'info') {
+      if (window.Swal) Swal.fire({ toast: true, position: 'top-end', icon: icon, title: msg, showConfirmButton: false, timer: 2200 });
+      else alert(msg);
+    }
+    function downloadExcel(rows, name) {
+      if (!window.XLSX) return alertBox('Library Excel belum tersedia.', 'error');
+      const ws = XLSX.utils.json_to_sheet(rows), wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Data'); XLSX.writeFile(wb, name + '.xlsx');
+    }
+    function exportEmployees() { const data = employees().map(e => ({ ID: e.id, Nama: e.nama, Jabatan: e.jabatan, Shift: shifts().find(s => s.id === e.shift)?.nama || '', No_HP: e.hp || '' })); downloadExcel(data, 'Data_Karyawan_SPBU') }
+
+    /* =========================================================
+       IMPORT EXCEL KARYAWAN
+       ========================================================= */
+    function triggerImportEmployees() {
+      if (currentUser?.role !== 'admin') return alertBox('Hanya Supervisor / Admin yang dapat mengimpor data karyawan.', 'warning');
+      document.getElementById('fileInputEmployees')?.click();
+    }
+
+    function handleFileImportEmployees(input) {
+      const file = input?.files?.[0];
+      if (!file) return;
+      if (!window.XLSX) { alertBox('Library Excel belum tersedia.', 'error'); input.value = ''; return; }
+      showLoading();
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+          if (!rows.length) { hideLoading(); input.value = ''; return alertBox('File Excel kosong.', 'error'); }
+          processImportEmployees(rows, input);
+        } catch (err) {
+          hideLoading(); input.value = ''; alertBox('Gagal membaca file Excel: ' + (err?.message || err), 'error');
+        }
+      };
+      reader.onerror = function () { hideLoading(); input.value = ''; alertBox('Gagal membaca file Excel.', 'error'); };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function processImportEmployees(rows, input) {
+      const clean = v => v == null ? '' : String(v).trim();
+      const pick = (row, names) => { for (const n of names) { if (Object.prototype.hasOwnProperty.call(row, n) && clean(row[n])) return clean(row[n]); } return ''; };
+      const first = rows[0] || {};
+      const idHeader = ['ID Karyawan', 'ID_Karyawan', 'ID', 'Id Karyawan'].some(h => Object.prototype.hasOwnProperty.call(first, h));
+      const nameHeader = ['Nama', 'Nama Karyawan', 'Nama Lengkap'].some(h => Object.prototype.hasOwnProperty.call(first, h));
+      if (!idHeader || !nameHeader) {
+        hideLoading(); input.value = '';
+        return alertBox('Format Excel salah. Wajib ada kolom ID Karyawan (atau ID) dan Nama.', 'error');
+      }
+
+      const shiftList = shifts();
+      const shiftById = new Map(shiftList.map(x => [x.id.toUpperCase(), x.id]));
+      const shiftByName = new Map(shiftList.map(x => [x.nama.toLowerCase(), x.id]));
+      const existing = employees();
+      const existingIds = new Set(existing.map(x => x.id.toUpperCase()));
+      const batchIds = new Set();
+      const valid = [];
+      let skipped = 0, invalid = 0;
+
+      for (const row of rows) {
+        const id = pick(row, ['ID Karyawan', 'ID_Karyawan', 'ID', 'Id Karyawan']).toUpperCase();
+        const nama = pick(row, ['Nama', 'Nama Karyawan', 'Nama Lengkap']);
+        const jabatan = pick(row, ['Jabatan', 'Posisi']) || 'Operator';
+        const shiftRaw = pick(row, ['Shift', 'ID Shift', 'Shift ID']);
+        const hp = pick(row, ['No. HP', 'No HP', 'No Handphone', 'HP']);
+        const password = pick(row, ['Password', 'Kata Sandi']) || '123456';
+        if (!id || !nama) { invalid++; continue; }
+        if (existingIds.has(id) || batchIds.has(id)) { skipped++; continue; }
+        let shift = '';
+        if (shiftRaw) {
+          shift = shiftById.get(shiftRaw.toUpperCase()) || shiftByName.get(shiftRaw.toLowerCase()) || '';
+        }
+        if (!shift) { invalid++; continue; }
+        batchIds.add(id);
+        valid.push({ id, nama, jabatan, shift, hp, password });
+      }
+
+      if (valid.length) {
+        setData(KEY.employees, existing.concat(valid));
+        renderEmployees(); populateShiftSelects(); renderAdminDashboard();
+      }
+      hideLoading(); input.value = '';
+      alertBox(`Import selesai: ${valid.length} ditambahkan, ${skipped} duplikat, ${invalid} baris tidak valid.`, 'success');
+    }
+
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      getData(KEY.shifts, DEFAULT_SHIFTS); getData(KEY.employees, DEFAULT_EMPLOYEES); getData(KEY.attendance, []); getData(KEY.holidays, []); getData(KEY.settings, { workdays: [1, 2, 3, 4, 5, 6] });
+      updateDate(); setInterval(updateDate, 60000);
+      if (CLOUD_API_URL) {
+        await initializeCloud();
+        setInterval(async () => {
+          if (document.hidden) return;
+          await loadCloudData();
+          if (currentUser) { renderEmployees(); populateShiftSelects(); renderAdminDashboard(); if (currentUser.role === 'Karyawan') { renderMyDashboard(); renderMyAttendance(); } }
+        }, 30000);
+      }
+      const saved = localStorage.getItem(KEY.user);
+      if (saved) { try { currentUser = JSON.parse(saved); enterApp() } catch (e) { localStorage.removeItem(KEY.user) } }
+      else switchLoginTab('Karyawan');
+    });
+  </script>
+</body>
+
+</html>
