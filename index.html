@@ -2024,6 +2024,7 @@
     const CLOUD_API_KEY = 'SPBU-V11-2026';
     let cloudSyncing = false;
     let cloudReady = false;
+    let cloudSavePromise = null;
 
     function getData(key, fallback = []) {
       try {
@@ -2120,17 +2121,54 @@
       return cloudLoadInFlight;
     }
     async function saveCloudData() {
-      if (!CLOUD_API_URL || !cloudReady || cloudSyncing) return;
-      cloudSyncing = true;
-      try {
-        await cloudRequest({
-          action: 'save', data: {
-            employees: employees(), shifts: shifts(), attendance: attendance(),
-            holidays: holidays(), settings: settings()
-          }
-        });
-      } catch (err) { console.error('Cloud save:', err) }
-      finally { cloudSyncing = false }
+      if (!CLOUD_API_URL || !cloudReady) return false;
+      if (cloudSavePromise) return cloudSavePromise;
+      cloudSavePromise = (async () => {
+        cloudSyncing = true;
+        try {
+          await cloudRequest({
+            action: 'save', data: {
+              employees: employees(), shifts: shifts(), attendance: attendance(),
+              holidays: holidays(), settings: settings()
+            }
+          });
+          return true;
+        } catch (err) {
+          console.error('Cloud save:', err);
+          return false;
+        } finally {
+          cloudSyncing = false;
+          cloudSavePromise = null;
+        }
+      })();
+      return cloudSavePromise;
+    }
+
+    async function syncAttendanceImmediately() {
+      if (!CLOUD_API_URL) return false;
+      if (!cloudReady) {
+        const loaded = await loadCloudData();
+        if (!loaded) return false;
+      }
+      const ok = await saveCloudData();
+      if (!ok) {
+        console.warn('Absensi tersimpan di perangkat, tetapi gagal dikirim ke database online.');
+      }
+      return ok;
+    }
+
+    async function refreshMonitoringFromCloud() {
+      if (!CLOUD_API_URL) { renderMonitoring(); return; }
+      // Pastikan perubahan lokal yang baru saja dibuat dikirim dahulu.
+      await saveCloudData();
+      const ok = await loadCloudData();
+      if (!ok) {
+        alertBox('Database online tidak dapat diperbarui. Menampilkan data pada perangkat ini.', 'warning');
+      }
+      renderEmployees();
+      populateShiftSelects();
+      renderMonitoring();
+      renderAdminDashboard();
     }
     async function initializeCloud() {
       if (!CLOUD_API_URL) return;
@@ -3232,6 +3270,7 @@
       const t = nowTime(), status = determineStatus(e, t);
       const rec = mergeAttendanceSelfie(mergeAttendanceLocation({ idKaryawan: e.id, tanggal: today(), jamMasuk: t, jamPulang: a?.jamPulang || '', status, keterangan: 'Absensi mandiri + GPS + Selfie' }, loc), selfie);
       saveAttendanceRecord(rec);
+      await syncAttendanceImmediately();
       renderMyAttendance(); renderMyDashboard(); renderAdminDashboard(); renderMonitoring();
       alertBox('Absen masuk berhasil: ' + t + '<br>' + locationSummary(loc), 'success');
     }
@@ -3248,7 +3287,7 @@
       mergeAttendanceLocation(a, loc);
       mergeAttendanceSelfie(a, selfie);
       a.keterangan = 'Absensi mandiri + GPS + Selfie';
-      saveAttendanceRecord(a); renderMyAttendance(); renderMyDashboard(); renderAdminDashboard(); renderMonitoring();
+      saveAttendanceRecord(a); await syncAttendanceImmediately(); renderMyAttendance(); renderMyDashboard(); renderAdminDashboard(); renderMonitoring();
       alertBox('Absen pulang berhasil: ' + a.jamPulang + '<br>' + locationSummary(loc), 'success');
     }
     function renderMyAttendance() {
@@ -3307,6 +3346,11 @@
     function initMonitoring() {
       const d = document.getElementById('monDate'); if (d && !d.value) d.value = today();
       populateShiftSelects(); renderMonitoring(); renderScannerLocationStatus();
+      // Admin selalu mengambil data terbaru dari database saat membuka monitoring.
+      if (currentUser && isPrivilegedUser() && CLOUD_API_URL) {
+        clearTimeout(window._monitoringCloudRefreshTimer);
+        window._monitoringCloudRefreshTimer = setTimeout(() => refreshMonitoringFromCloud(), 50);
+      }
     }
     function renderMonitoring() {
       const date = document.getElementById('monDate')?.value || today();
@@ -3582,6 +3626,7 @@
         mergeAttendanceLocation(a, loc);
         mergeAttendanceSelfie(a, selfie);
         saveAttendanceRecord(a);
+        await syncAttendanceImmediately();
         setScannerLastResult(e, `Pulang berhasil • ${a.jamPulang} • ${locationSummary(loc)}`);
         scannerFeedbackFromResult(id, true, `Absensi pulang ${a.jamPulang}`);
         renderScannerHistory(); renderMonitoring(); renderAdminDashboard(); renderMyDashboard();
@@ -3601,6 +3646,7 @@
       const status = determineStatus(e, t);
       const rec = mergeAttendanceSelfie(mergeAttendanceLocation({ idKaryawan: id, tanggal: today(), jamMasuk: t, jamPulang: '', status, keterangan: 'Scan QR + GPS + Selfie' }, loc), selfie);
       saveAttendanceRecord(rec);
+      await syncAttendanceImmediately();
       setScannerLastResult(e, `Masuk berhasil • ${t} • ${status} • ${locationSummary(loc)}`);
       scannerFeedbackFromResult(id, true, `Absensi masuk ${t} • ${status}`);
       renderScannerHistory(); renderMonitoring(); renderAdminDashboard(); renderMyDashboard();
@@ -4339,12 +4385,13 @@
         // Sinkronisasi hanya data aplikasi. Tidak pernah menghapus sesi login.
         setInterval(async () => {
           if (document.hidden || !currentUser) return;
-          await loadCloudData();
+          if (!cloudSyncing) await loadCloudData();
           if (currentUser) {
             persistUserSession(currentUser);
             renderEmployees();
             populateShiftSelects();
             renderAdminDashboard();
+            if (document.getElementById('view-monitoring')?.classList.contains('active')) renderMonitoring();
             if (currentUser.role === 'Karyawan') {
               renderMyDashboard();
               renderMyAttendance();
