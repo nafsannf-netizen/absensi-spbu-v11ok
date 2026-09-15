@@ -600,9 +600,9 @@
 
             <!-- Logo Pertamina -->
             <div
-              class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-lg">
+              class="login-brand-logo w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-lg">
 
-              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTVGEvQJQI_giq1s0WepVhemlr7pdZnftNzGQ3kCA2Axw&s=10" alt="Logo Pertamina" class="w-7 h-7 object-contain">
+              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTVGEvQJQI_giq1s0WepVhemlr7pdZnftNzGQ3kCA2Axw&s=10" alt="Logo Pertamina" class="login-brand-img w-7 h-7 object-contain">
 
             </div>
 
@@ -1897,6 +1897,38 @@
     #loginPage { min-height: 100dvh !important; padding: 14px !important; }
     #loginPage > div { width: 100% !important; max-width: 430px !important; }
     #loginPage .card, #loginPage form { width: 100%; }
+
+    /* Logo login dibuat lebih proporsional di layar smartphone, tanpa mengubah desktop */
+    #loginPage .login-brand-logo {
+      width: 48px !important;
+      height: 48px !important;
+      min-width: 48px !important;
+      border-radius: 13px !important;
+    }
+    #loginPage .login-brand-img {
+      width: 34px !important;
+      height: 34px !important;
+      max-width: 34px !important;
+      max-height: 34px !important;
+      object-fit: contain !important;
+      object-position: center !important;
+      display: block !important;
+    }
+
+    @media (max-width: 380px) {
+      #loginPage .login-brand-logo {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        border-radius: 12px !important;
+      }
+      #loginPage .login-brand-img {
+        width: 31px !important;
+        height: 31px !important;
+        max-width: 31px !important;
+        max-height: 31px !important;
+      }
+    }
 
     /* Hindari elemen panjang merusak layout */
     .truncate { min-width: 0; }
