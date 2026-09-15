@@ -493,6 +493,13 @@
       overflow: hidden
     }
 
+    .employee-card-logo {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
+      object-fit: contain;
+    }
+
     .employee-card-head {
       background: linear-gradient(135deg, #1e1b4b, #3730a3);
       color: #fff
@@ -503,6 +510,23 @@
       border-radius: 12px;
       background: #f8fafc
     }
+
+    .selfie-modal-backdrop {
+      position: fixed; inset: 0; z-index: 9999; background: rgba(15,23,42,.78);
+      display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    .selfie-modal-backdrop.show { display: flex; }
+    .selfie-modal {
+      width: min(460px, 100%); background: #fff; border-radius: 18px; overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0,0,0,.3);
+    }
+    .selfie-video-wrap { position: relative; background: #0f172a; aspect-ratio: 3/4; }
+    .selfie-video-wrap video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+    .selfie-guide {
+      position: absolute; inset: 12% 15%; border: 2px dashed rgba(255,255,255,.85);
+      border-radius: 45% 45% 40% 40%; pointer-events: none;
+    }
+    .selfie-status { min-height: 18px; }
 
     @media print {
       body * {
@@ -526,6 +550,34 @@
 </head>
 
 <body class="bg-slate-100 text-slate-800">
+
+  <!-- MODAL SELFIE ABSENSI -->
+  <div id="selfieModal" class="selfie-modal-backdrop" aria-hidden="true">
+    <div class="selfie-modal">
+      <div class="p-4 border-b flex items-center justify-between">
+        <div>
+          <div class="font-extrabold">Verifikasi Selfie</div>
+          <div id="selfieEmployeeLabel" class="text-xs text-slate-500 mt-1">Ambil foto sebelum absensi.</div>
+        </div>
+        <button type="button" onclick="cancelSelfieCapture()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="selfie-video-wrap">
+        <video id="selfieVideo" autoplay playsinline muted></video>
+        <div class="selfie-guide"></div>
+      </div>
+      <div class="p-4">
+        <div id="selfieStatus" class="selfie-status text-xs text-slate-500 mb-3">Posisikan wajah di dalam garis, lalu ambil foto.</div>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="cancelSelfieCapture()" class="py-3 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold">Batal</button>
+          <button type="button" onclick="takeSelfie()" class="py-3 rounded-lg bg-indigo-600 text-white text-xs font-bold"><i class="fas fa-camera mr-2"></i>Ambil Foto</button>
+        </div>
+      </div>
+      <canvas id="selfieCanvas" class="hidden"></canvas>
+    </div>
+  </div>
+
 
   <!-- LOGIN -->
   <div id="loginPage" class="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-slate-950">
@@ -600,9 +652,9 @@
 
             <!-- Logo Pertamina -->
             <div
-              class="login-brand-logo w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-lg">
+              class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-lg">
 
-              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTVGEvQJQI_giq1s0WepVhemlr7pdZnftNzGQ3kCA2Axw&s=10" alt="Logo Pertamina" class="login-brand-img w-7 h-7 object-contain">
+              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTVGEvQJQI_giq1s0WepVhemlr7pdZnftNzGQ3kCA2Axw&s=10" alt="Logo Pertamina" class="w-7 h-7 object-contain">
 
             </div>
 
@@ -1223,6 +1275,7 @@
                     <th class="p-3">Masuk</th>
                     <th class="p-3">Pulang</th>
                     <th class="p-3">Status</th>
+                    <th class="p-3 text-left">Lokasi</th>
                     <th class="p-3 text-left">Keterangan</th>
                   </tr>
                 </thead>
@@ -1508,6 +1561,17 @@
                 membaca QR karyawan berikutnya.</p>
             </div>
 
+            <div class="card p-6 border border-emerald-100">
+              <h3 class="font-bold mb-2"><i class="fas fa-location-dot text-emerald-600 mr-2"></i>Keamanan Lokasi</h3>
+              <p class="text-xs text-slate-500 mb-3">Lokasi GPS perangkat dicatat saat absensi. Jika geofence aktif, absensi hanya diterima di area SPBU.</p>
+              <div id="scannerLocationStatus" class="text-xs rounded-lg bg-slate-50 p-3 text-slate-600">Lokasi SPBU belum dikonfigurasi.</div>
+              <div class="grid grid-cols-2 gap-2 mt-3">
+                <button type="button" onclick="setCurrentDeviceAsSPBU()" class="py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">Tetapkan Lokasi SPBU</button>
+                <button type="button" onclick="clearSPBULocation()" class="py-2.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold">Nonaktifkan Geofence</button>
+              </div>
+              <p class="text-[10px] text-slate-400 mt-2">Disarankan radius 100 meter. Browser akan meminta izin lokasi.</p>
+            </div>
+
             <div class="card p-6">
               <h3 class="font-bold mb-4"><i class="fas fa-id-card text-indigo-500 mr-2"></i>Absen dengan ID Karyawan
               </h3>
@@ -1593,8 +1657,7 @@
                       <div class="font-extrabold mt-1">KARTU KARYAWAN</div>
                       <div class="text-[10px] text-indigo-200 mt-1">No. SPBU 13.262.515</div>
                     </div>
-                    <img src="logo-pertamina.png" class="w-10 h-10 object-contain bg-white rounded-lg p-1"
-                      alt="Pertamina">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0rKQaMSRhCUyAboOYW80Rgl5AzJirznWTL9zJrK0VAA&amp;s" class="w-10 h-10 object-contain bg-white rounded-lg p-1 employee-card-logo" alt="Pertamina" onerror="this.onerror=null;this.src=PERTAMINA_LOGO_DATA_URI;">
                   </div>
                 </div>
                 <div class="p-6">
@@ -1897,38 +1960,6 @@
     #loginPage { min-height: 100dvh !important; padding: 14px !important; }
     #loginPage > div { width: 100% !important; max-width: 430px !important; }
     #loginPage .card, #loginPage form { width: 100%; }
-
-    /* Logo login dibuat lebih proporsional di layar smartphone, tanpa mengubah desktop */
-    #loginPage .login-brand-logo {
-      width: 48px !important;
-      height: 48px !important;
-      min-width: 48px !important;
-      border-radius: 13px !important;
-    }
-    #loginPage .login-brand-img {
-      width: 34px !important;
-      height: 34px !important;
-      max-width: 34px !important;
-      max-height: 34px !important;
-      object-fit: contain !important;
-      object-position: center !important;
-      display: block !important;
-    }
-
-    @media (max-width: 380px) {
-      #loginPage .login-brand-logo {
-        width: 44px !important;
-        height: 44px !important;
-        min-width: 44px !important;
-        border-radius: 12px !important;
-      }
-      #loginPage .login-brand-img {
-        width: 31px !important;
-        height: 31px !important;
-        max-width: 31px !important;
-        max-height: 31px !important;
-      }
-    }
 
     /* Hindari elemen panjang merusak layout */
     .truncate { min-width: 0; }
@@ -2992,6 +3023,182 @@
     }
 
     /* =========================================================
+       GPS / GEOFENCE ABSENSI
+       ========================================================= */
+    const DEFAULT_GEOFENCE_RADIUS = 100;
+    function getLocationConfig() {
+      const st = settings() || {};
+      return st.attendanceLocation || { enabled: false, latitude: null, longitude: null, radius: DEFAULT_GEOFENCE_RADIUS };
+    }
+    function saveLocationConfig(cfg) {
+      const st = { ...(settings() || {}) , attendanceLocation: cfg };
+      setData(KEY.settings, st);
+      renderScannerLocationStatus();
+    }
+    function getCurrentPosition(options = {}) {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) return reject(new Error('Perangkat/browser tidak mendukung GPS.'));
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0,
+          ...options
+        });
+      });
+    }
+    function haversineDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const toRad = v => v * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(a));
+    }
+    function formatGps(n) { return Number.isFinite(Number(n)) ? Number(n).toFixed(6) : '-'; }
+    function renderScannerLocationStatus() {
+      const box = document.getElementById('scannerLocationStatus'); if (!box) return;
+      const c = getLocationConfig();
+      if (!c.enabled || !Number.isFinite(Number(c.latitude)) || !Number.isFinite(Number(c.longitude))) {
+        box.innerHTML = '<b>Geofence: OFF</b><br>GPS tetap akan dicatat saat absensi, tetapi lokasi belum dibatasi ke area SPBU.';
+        return;
+      }
+      box.innerHTML = `<b class="text-emerald-700">Geofence: ON</b><br>Pusat: ${formatGps(c.latitude)}, ${formatGps(c.longitude)}<br>Radius: <b>${Number(c.radius || DEFAULT_GEOFENCE_RADIUS)} meter</b>`;
+    }
+    async function setCurrentDeviceAsSPBU() {
+      if (!isPrivilegedUser()) return alertBox('Hanya Supervisor / Admin yang dapat mengatur lokasi SPBU.', 'warning');
+      try {
+        const pos = await getCurrentPosition();
+        const radius = Number(prompt('Masukkan radius geofence dalam meter:', DEFAULT_GEOFENCE_RADIUS));
+        if (!Number.isFinite(radius) || radius < 10 || radius > 1000) return alertBox('Radius harus antara 10 sampai 1000 meter.', 'warning');
+        saveLocationConfig({ enabled: true, latitude: pos.coords.latitude, longitude: pos.coords.longitude, radius, accuracy: pos.coords.accuracy, setAt: new Date().toISOString() });
+        alertBox(`Lokasi SPBU disimpan. Akurasi GPS ±${Math.round(pos.coords.accuracy || 0)} m, radius ${radius} m.`, 'success');
+      } catch (err) {
+        alertBox('Lokasi tidak dapat diambil. Aktifkan izin lokasi/GPS lalu coba lagi.', 'error');
+      }
+    }
+    function clearSPBULocation() {
+      if (!isPrivilegedUser()) return alertBox('Hanya Supervisor / Admin yang dapat mengatur lokasi SPBU.', 'warning');
+      saveLocationConfig({ enabled: false, latitude: null, longitude: null, radius: DEFAULT_GEOFENCE_RADIUS });
+      alertBox('Geofence dinonaktifkan. GPS tetap dicatat saat absensi.', 'info');
+    }
+    async function captureAttendanceLocation() {
+      try {
+        const pos = await getCurrentPosition();
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        const accuracy = Number(pos.coords.accuracy || 0);
+        const c = getLocationConfig();
+        let distance = null, inside = true;
+        if (c.enabled && Number.isFinite(Number(c.latitude)) && Number.isFinite(Number(c.longitude))) {
+          distance = haversineDistanceMeters(Number(c.latitude), Number(c.longitude), lat, lng);
+          inside = distance <= Number(c.radius || DEFAULT_GEOFENCE_RADIUS);
+          if (!inside) {
+            return { ok: false, reason: `Di luar area SPBU (${Math.round(distance)} m dari titik pusat, radius ${Number(c.radius || DEFAULT_GEOFENCE_RADIUS)} m).`, latitude: lat, longitude: lng, accuracy, distance, inside };
+          }
+        }
+        return { ok: true, latitude: lat, longitude: lng, accuracy, distance, inside };
+      } catch (err) {
+        return { ok: false, reason: 'GPS tidak tersedia/izin lokasi ditolak. Absensi dibatalkan demi keamanan.' };
+      }
+    }
+    function locationSummary(loc) {
+      if (!loc?.ok) return '';
+      const d = loc.distance == null ? 'Geofence OFF' : `${Math.round(loc.distance)} m dari SPBU`;
+      return `Lokasi: ${formatGps(loc.latitude)}, ${formatGps(loc.longitude)} • ±${Math.round(loc.accuracy || 0)} m • ${d}`;
+    }
+    function mergeAttendanceLocation(record, loc) {
+      if (!loc?.ok) return record;
+      record.latitude = loc.latitude;
+      record.longitude = loc.longitude;
+      record.locationAccuracy = loc.accuracy;
+      record.locationDistance = loc.distance;
+      record.locationInside = loc.inside;
+      return record;
+    }
+
+    /* =========================================================
+       SELFIE VERIFICATION ABSENSI
+       ========================================================= */
+    let selfieStream = null;
+    let selfieResolver = null;
+
+    function stopSelfieCamera() {
+      if (selfieStream) { selfieStream.getTracks().forEach(t => t.stop()); selfieStream = null; }
+      const video = document.getElementById('selfieVideo');
+      if (video) video.srcObject = null;
+    }
+
+    function cancelSelfieCapture() {
+      stopSelfieCamera();
+      const modal = document.getElementById('selfieModal');
+      if (modal) { modal.classList.remove('show'); modal.setAttribute('aria-hidden', 'true'); }
+      if (selfieResolver) { const resolve = selfieResolver; selfieResolver = null; resolve(null); }
+    }
+
+    async function requestSelfieCapture(employee) {
+      const modal = document.getElementById('selfieModal');
+      const video = document.getElementById('selfieVideo');
+      const label = document.getElementById('selfieEmployeeLabel');
+      const status = document.getElementById('selfieStatus');
+      if (!modal || !video) return null;
+      if (!navigator.mediaDevices?.getUserMedia) {
+        alertBox('Browser tidak mendukung kamera selfie. Gunakan browser terbaru melalui HTTPS.', 'error');
+        return null;
+      }
+      stopSelfieCamera();
+      if (label) label.textContent = employee ? `${employee.nama} (${employee.id}) • ${scannerMode === 'masuk' ? 'Absen Masuk' : 'Absen Pulang'}` : 'Verifikasi selfie absensi';
+      if (status) status.textContent = 'Meminta izin kamera depan...';
+      modal.classList.add('show'); modal.setAttribute('aria-hidden', 'false');
+      try {
+        selfieStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 960 } }, audio: false });
+        video.srcObject = selfieStream;
+        await video.play().catch(() => {});
+        if (status) status.textContent = 'Posisikan wajah di dalam garis, lalu ambil foto.';
+      } catch (err) {
+        stopSelfieCamera();
+        modal.classList.remove('show'); modal.setAttribute('aria-hidden', 'true');
+        alertBox('Kamera selfie tidak dapat digunakan. Izinkan akses kamera untuk melanjutkan absensi.', 'error');
+        return null;
+      }
+      return await new Promise(resolve => { selfieResolver = resolve; });
+    }
+
+    function takeSelfie() {
+      if (!selfieResolver) return;
+      const video = document.getElementById('selfieVideo');
+      const canvas = document.getElementById('selfieCanvas');
+      const status = document.getElementById('selfieStatus');
+      if (!video || !canvas || video.readyState < 2 || !video.videoWidth) {
+        if (status) status.textContent = 'Kamera belum siap. Tunggu sebentar lalu coba lagi.';
+        return;
+      }
+      const maxWidth = 640;
+      const scale = Math.min(1, maxWidth / video.videoWidth);
+      canvas.width = Math.round(video.videoWidth * scale);
+      canvas.height = Math.round(video.videoHeight * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.save();
+      ctx.translate(canvas.width, 0); ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+      stopSelfieCamera();
+      const modal = document.getElementById('selfieModal');
+      if (modal) { modal.classList.remove('show'); modal.setAttribute('aria-hidden', 'true'); }
+      const resolve = selfieResolver; selfieResolver = null;
+      resolve({ dataUrl, capturedAt: new Date().toISOString() });
+    }
+
+    function mergeAttendanceSelfie(record, selfie) {
+      if (!selfie?.dataUrl) return record;
+      record.selfieData = selfie.dataUrl;
+      record.selfieCapturedAt = selfie.capturedAt || new Date().toISOString();
+      return record;
+    }
+
+    function selfieSummary(record) {
+      return record?.selfieData ? 'Selfie ✓' : 'Selfie tidak ada';
+    }
+
+    /* =========================================================
        ATTENDANCE
        ========================================================= */
     /* V10 - Absensi Masuk/Pulang terintegrasi:
@@ -3012,24 +3219,37 @@
       if (!s) return 'Hadir';
       return time > s.masuk ? 'Terlambat' : 'Hadir';
     }
-    function selfCheckIn() {
+    async function selfCheckIn() {
       if (!currentUser || currentUser.role !== 'Karyawan') return;
       const e = employees().find(x => x.id === currentUser.id); if (!e) return;
       if (!isWorkday(today())) return alertBox('Hari ini bukan hari kerja / termasuk hari libur.', 'warning');
       let a = getAttendance(e.id);
       if (a?.jamMasuk) return alertBox('Anda sudah melakukan absen masuk.', 'info');
+      const loc = await captureAttendanceLocation();
+      if (!loc.ok) return alertBox(loc.reason, 'error');
+      const selfie = await requestSelfieCapture(e);
+      if (!selfie?.dataUrl) return alertBox('Absensi dibatalkan karena selfie belum diambil.', 'warning');
       const t = nowTime(), status = determineStatus(e, t);
-      saveAttendanceRecord({ idKaryawan: e.id, tanggal: today(), jamMasuk: t, jamPulang: a?.jamPulang || '', status, keterangan: '' });
+      const rec = mergeAttendanceSelfie(mergeAttendanceLocation({ idKaryawan: e.id, tanggal: today(), jamMasuk: t, jamPulang: a?.jamPulang || '', status, keterangan: 'Absensi mandiri + GPS + Selfie' }, loc), selfie);
+      saveAttendanceRecord(rec);
       renderMyAttendance(); renderMyDashboard(); renderAdminDashboard(); renderMonitoring();
-      alertBox('Absen masuk berhasil: ' + t, 'success');
+      alertBox('Absen masuk berhasil: ' + t + '<br>' + locationSummary(loc), 'success');
     }
-    function selfCheckOut() {
+    async function selfCheckOut() {
       if (!currentUser || currentUser.role !== 'Karyawan') return;
       let a = getAttendance(currentUser.id);
       if (!a?.jamMasuk) return alertBox('Anda belum melakukan absen masuk.', 'warning');
       if (a.jamPulang) return alertBox('Anda sudah melakukan absen pulang.', 'info');
-      a.jamPulang = nowTime(); saveAttendanceRecord(a); renderMyAttendance(); renderMyDashboard(); renderAdminDashboard(); renderMonitoring();
-      alertBox('Absen pulang berhasil: ' + a.jamPulang, 'success');
+      const loc = await captureAttendanceLocation();
+      if (!loc.ok) return alertBox(loc.reason, 'error');
+      const selfie = await requestSelfieCapture(employees().find(x => x.id === currentUser.id));
+      if (!selfie?.dataUrl) return alertBox('Absensi dibatalkan karena selfie belum diambil.', 'warning');
+      a.jamPulang = nowTime();
+      mergeAttendanceLocation(a, loc);
+      mergeAttendanceSelfie(a, selfie);
+      a.keterangan = 'Absensi mandiri + GPS + Selfie';
+      saveAttendanceRecord(a); renderMyAttendance(); renderMyDashboard(); renderAdminDashboard(); renderMonitoring();
+      alertBox('Absen pulang berhasil: ' + a.jamPulang + '<br>' + locationSummary(loc), 'success');
     }
     function renderMyAttendance() {
       if (!currentUser || currentUser.role !== 'Karyawan') return;
@@ -3086,7 +3306,7 @@
     }
     function initMonitoring() {
       const d = document.getElementById('monDate'); if (d && !d.value) d.value = today();
-      populateShiftSelects(); renderMonitoring();
+      populateShiftSelects(); renderMonitoring(); renderScannerLocationStatus();
     }
     function renderMonitoring() {
       const date = document.getElementById('monDate')?.value || today();
@@ -3129,16 +3349,17 @@
       <td class="p-3 text-center">${r.a.jamMasuk || '-'}</td>
       <td class="p-3 text-center">${r.a.jamPulang || '-'}</td>
       <td class="p-3 text-center">${statusBadge(r.a.status)}</td>
+      <td class="p-3 text-xs">${r.a.latitude != null ? `${formatGps(r.a.latitude)}, ${formatGps(r.a.longitude)}<div class="text-[10px] text-slate-400">±${Math.round(r.a.locationAccuracy || 0)} m${r.a.locationDistance != null ? ` • ${Math.round(r.a.locationDistance)} m dari SPBU` : ''}</div>` : '-'}<div class="text-[10px] mt-1 ${r.a.selfieData ? 'text-emerald-600 font-bold' : 'text-red-500'}">${r.a.selfieData ? '✓ Selfie tersimpan' : '✗ Tanpa selfie'}</div></td>
       <td class="p-3">${esc(r.a.keterangan || '-')}
         <button onclick="openStatusMenu('${r.id}','${date}')" class="ml-2 text-[10px] text-indigo-600 font-bold">Ubah Status</button>
       </td>
-    </tr>`).join('') : `<tr><td colspan="8" class="p-10 text-center text-slate-400">Tidak ada data.</td></tr>`;
+    </tr>`).join('') : `<tr><td colspan="9" class="p-10 text-center text-slate-400">Tidak ada data.</td></tr>`;
 
       renderTablePagination('monitoring', 'monitoringPagination');
     }
     function exportMonitoring() {
       const date = document.getElementById('monDate')?.value || today();
-      const data = employees().map(e => { const a = getAttendance(e.id, date) || { status: 'Belum Absen' }; return { Tanggal: date, ID: e.id, Nama: e.nama, Jabatan: e.jabatan, Shift: shifts().find(s => s.id === e.shift)?.nama || '', Jam_Masuk: a.jamMasuk || '', Jam_Pulang: a.jamPulang || '', Status: a.status, Keterangan: a.keterangan || '' } });
+      const data = employees().map(e => { const a = getAttendance(e.id, date) || { status: 'Belum Absen' }; return { Tanggal: date, ID: e.id, Nama: e.nama, Jabatan: e.jabatan, Shift: shifts().find(s => s.id === e.shift)?.nama || '', Jam_Masuk: a.jamMasuk || '', Jam_Pulang: a.jamPulang || '', Status: a.status, Latitude: a.latitude ?? '', Longitude: a.longitude ?? '', Akurasi_GPS_m: a.locationAccuracy ?? '', Jarak_ke_SPBU_m: a.locationDistance ?? '', Di_Area_SPBU: a.locationInside == null ? '' : (a.locationInside ? 'Ya' : 'Tidak'), Selfie_Tersimpan: a.selfieData ? 'Ya' : 'Tidak', Selfie_Waktu: a.selfieCapturedAt || '', Keterangan: a.keterangan || '' } });
       downloadExcel(data, 'Monitoring_Absensi_' + date);
     }
 
@@ -3307,7 +3528,7 @@
       } catch (e) { }
     }
 
-    function handleScannedEmployee(id) {
+    async function handleScannedEmployee(id) {
       id = (id || '').trim().toUpperCase();
       const now = Date.now();
       if (id && id === scannerLastDetected && now - scannerLastDetectedAt < 1800) return false;
@@ -3322,6 +3543,24 @@
       if (!isWorkday(today())) {
         scannerFeedbackFromResult(id, false, 'Hari ini bukan hari kerja / termasuk hari libur.'); alertBox('Hari ini bukan hari kerja / termasuk hari libur.', 'warning'); return false;
       }
+
+      const loc = await captureAttendanceLocation();
+      if (!loc.ok) {
+        scannerFeedbackFromResult(id, false, loc.reason);
+        alertBox(loc.reason, 'error');
+        return false;
+      }
+
+      // Hentikan kamera QR sementara agar kamera depan dapat dipakai untuk selfie.
+      const scannerWasRunning = !!detailScanner;
+      if (scannerWasRunning) await stopDetailScanner();
+      const selfie = await requestSelfieCapture(e);
+      if (!selfie?.dataUrl) {
+        if (scannerWasRunning) setTimeout(() => startDetailScanner(), 150);
+        scannerFeedbackFromResult(id, false, 'Selfie belum diambil.', 'warning');
+        return false;
+      }
+      if (scannerWasRunning) setTimeout(() => startDetailScanner(), 150);
 
       const a = getAttendance(id);
       if (scannerMode === 'pulang') {
@@ -3339,9 +3578,11 @@
           return false;
         }
         a.jamPulang = nowTime();
-        a.keterangan = a.keterangan || 'Scan QR';
+        a.keterangan = 'Scan QR + GPS + Selfie';
+        mergeAttendanceLocation(a, loc);
+        mergeAttendanceSelfie(a, selfie);
         saveAttendanceRecord(a);
-        setScannerLastResult(e, `Pulang berhasil • ${a.jamPulang}`);
+        setScannerLastResult(e, `Pulang berhasil • ${a.jamPulang} • ${locationSummary(loc)}`);
         scannerFeedbackFromResult(id, true, `Absensi pulang ${a.jamPulang}`);
         renderScannerHistory(); renderMonitoring(); renderAdminDashboard(); renderMyDashboard();
         alertBox('Absen pulang ' + e.nama + ' berhasil dicatat.', 'success');
@@ -3358,8 +3599,9 @@
 
       const t = nowTime();
       const status = determineStatus(e, t);
-      saveAttendanceRecord({ idKaryawan: id, tanggal: today(), jamMasuk: t, jamPulang: '', status, keterangan: 'Scan QR' });
-      setScannerLastResult(e, `Masuk berhasil • ${t} • ${status}`);
+      const rec = mergeAttendanceSelfie(mergeAttendanceLocation({ idKaryawan: id, tanggal: today(), jamMasuk: t, jamPulang: '', status, keterangan: 'Scan QR + GPS + Selfie' }, loc), selfie);
+      saveAttendanceRecord(rec);
+      setScannerLastResult(e, `Masuk berhasil • ${t} • ${status} • ${locationSummary(loc)}`);
       scannerFeedbackFromResult(id, true, `Absensi masuk ${t} • ${status}`);
       renderScannerHistory(); renderMonitoring(); renderAdminDashboard(); renderMyDashboard();
       alertBox('Absensi masuk ' + e.nama + ' berhasil dicatat.', 'success');
@@ -3449,13 +3691,14 @@
           const id = raw.replace('SPBU-ABSEN:', '').trim().toUpperCase();
           if (!id || !canProcessScannerId(id)) return;
           setScannerCameraStatus('QR terdeteksi • memproses absensi...');
-          const ok = handleScannedEmployee(id);
+          handleScannedEmployee(id).then(ok => {
           // Jangan hentikan kamera. Setelah hasil diproses, scanner kembali siap
           // menerima QR berikutnya tanpa perlu klik Mulai Scan lagi.
           setScannerReaderState(ok ? 'scanning' : 'scanning');
           setTimeout(() => {
             if (detailScanner) setScannerCameraStatus('Kamera aktif • siap scan berikutnya...');
           }, 450);
+          });
         } else {
           const now = Date.now();
           if (now - scannerLastInvalidScanAt < scannerScanCooldown) return;
@@ -3507,15 +3750,20 @@
       return Promise.resolve();
     }
 
-    function submitManualEmployeeId() {
+    async function submitManualEmployeeId() {
       const id = document.getElementById('manualEmployeeId')?.value.trim().toUpperCase();
       if (!id) return alertBox('Masukkan ID Karyawan.', 'warning');
-      if (handleScannedEmployee(id)) document.getElementById('manualEmployeeId').value = '';
+      const ok = await handleScannedEmployee(id);
+      if (ok) document.getElementById('manualEmployeeId').value = '';
     }
 
     /* =========================================================
        KARTU KARYAWAN
        ========================================================= */
+    // Logo ditanam langsung sebagai SVG agar kartu/PDF tidak bergantung pada
+    // file lokal atau URL gambar eksternal yang dapat gagal dimuat.
+    const PERTAMINA_LOGO_DATA_URI = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20150%22%3E%3Cpath%20fill%3D%22%23009FE3%22%20d%3D%22M14%20119%2054%2039h67l-45%2080H14Z%22%2F%3E%3Cpath%20fill%3D%22%23E52B20%22%20d%3D%22M103%2016h57l27%2045h-58L103%2016Z%22%2F%3E%3Cpath%20fill%3D%22%2380C41C%22%20d%3D%22M125%2074h65l-27%2042h-63l25-42Z%22%2F%3E%3C%2Fsvg%3E';
+
     function initEmployeeCard() {
       const sel = document.getElementById('cardEmployee'); if (!sel) return;
       const list = currentUser?.role === 'Karyawan' ? employees().filter(e => e.id === currentUser.id) : employees();
@@ -3619,8 +3867,9 @@
       try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-        const logoEl = document.querySelector('#employeeCardPrint img');
-        const logoData = await loadImageDataUrl(logoEl?.src || '');
+        // Gunakan logo embedded, bukan URL/file eksternal, supaya selalu tersedia
+        // saat membuat PDF dan tidak terkena masalah CORS atau file lokal hilang.
+        const logoData = await loadImageDataUrl(PERTAMINA_LOGO_DATA_URI);
 
         const pageW = 210, pageH = 297;
         const marginX = 9, marginY = 9, gapX = 5, gapY = 5;
